@@ -1,2 +1,2 @@
 # dcarte-transform
- Helpful transform functions for dcarte
+A package that can be used alongside DCARTE that adds extra functionality for engineered features and machine learning.
