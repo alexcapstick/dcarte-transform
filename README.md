@@ -1,4 +1,4 @@
 # dcarte-transform
-A package that can be used alongside DCARTE that adds extra functionality for engineered features and machine learning.
+A package that can be used alongside DCARTE that adds extra functionality for engineering features, labelling data and applying machine learning.
 
 This package is in development.
