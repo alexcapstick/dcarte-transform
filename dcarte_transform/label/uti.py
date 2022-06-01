@@ -56,6 +56,8 @@ def get_labels(days_either_side:int=0) -> pd.DataFrame:
     
     - days_either_side: ```int```, optional:
         The number of days either side of a label that will be given the same label.
+        If these days overlap, the label produced by the most recent true date will
+        be used for the overlapping days.
         Defaults to ```0```.
     
     
