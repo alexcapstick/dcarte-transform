@@ -144,7 +144,8 @@ def get_labels(days_either_side:int=0) -> pd.DataFrame:
 
 
 @dcarte.utils.timer('mapping UTI labels')
-def label(df:pd.DataFrame,  days_either_side:int=0, return_event=False) -> pd.DataFrame:
+def label(df:pd.DataFrame, datetime_col:str='start_date', 
+            days_either_side:int=0, return_event=False) -> pd.DataFrame:
     '''
     This function will label the input dataframe based on the uti data 
     in ```procedure```.
@@ -155,8 +156,13 @@ def label(df:pd.DataFrame,  days_either_side:int=0, return_event=False) -> pd.Da
     ----------
     
     - ```df```: ```pandas.DataFrame```:
-        Unlabelled dataframe, must contain columns ```[patient_id, start_date]```, where ```patient_id``` is the
-        ids of participants and ```start_date``` is the time of the sensors.
+        Unlabelled dataframe, must contain columns ```['patient_id', 'start_date']```, where ```'patient_id'``` is the
+        ids of participants and ```'start_date'``` is the time of the sensors. If the dataframe does not 
+        contain ```'start_date'```, then pass the date time column name to ```datetime_col```.
+    
+    - ```datetime_col```: ```str```, optional:
+        The column name that contains the date time information.
+        Defaults to ```'start_date'```.
 
     - ```days_either_side```: ```int```, optional:
         The number of days either side of a label that will be given the same label.
@@ -184,7 +190,7 @@ def label(df:pd.DataFrame,  days_either_side:int=0, return_event=False) -> pd.Da
 
     df_labels = get_labels(days_either_side=days_either_side)
 
-    df['date'] = pd.to_datetime(df['start_date']).dt.date
+    df['date'] = pd.to_datetime(df[datetime_col]).dt.date
 
     # ensure the joining series have the same types
     logging.info('Making sure the pandas columns that are used for the join have the same type.')

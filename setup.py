@@ -20,5 +20,8 @@ setup(
                         "matplotlib>=3.5.1",
                         "dcarte>=0.3",
                         "scikit-learn>=1.1.1",
+                        "pydtmc>=6.10.0",
+                        "tqdm>=4.64.0",
+
     ]
 )
