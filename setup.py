@@ -17,7 +17,8 @@ setup(
     install_requires=[
                         "numpy>=1.22",
                         "pandas>=1.4",
-                        "matplotlib>=3.5.1"
-                        "dcarte>=0.3"
+                        "matplotlib>=3.5.1",
+                        "dcarte>=0.3",
+                        "scikit-learn>=1.1.1",
     ]
 )
