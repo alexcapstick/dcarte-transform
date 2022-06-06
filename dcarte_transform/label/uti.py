@@ -3,6 +3,8 @@ import numpy as np
 import dcarte
 import datetime
 import logging
+import uuid
+
 
 def map_url_to_flag(urls:pd.Series) -> pd.Series:
     '''
@@ -54,7 +56,7 @@ def get_labels(days_either_side:int=0) -> pd.DataFrame:
     Arguments
     ---------
     
-    - days_either_side: ```int```, optional:
+    - ```days_either_side```: ```int```, optional:
         The number of days either side of a label that will be given the same label.
         If these days overlap, the label produced by the most recent true date will
         be used for the overlapping days.
@@ -133,7 +135,7 @@ def get_labels(days_either_side:int=0) -> pd.DataFrame:
                                         'outcome']).apply(dates_either_side_group_by
                                                 ).reset_index(drop=True)
 
-    return df_labels
+    return df_labels.reset_index(drop=True)
 
 
 
@@ -142,7 +144,7 @@ def get_labels(days_either_side:int=0) -> pd.DataFrame:
 
 
 @dcarte.utils.timer('mapping UTI labels')
-def label(df:pd.DataFrame,  days_either_side:int=0) -> pd.DataFrame:
+def label(df:pd.DataFrame,  days_either_side:int=0, return_event=False) -> pd.DataFrame:
     '''
     This function will label the input dataframe based on the uti data 
     in ```procedure```.
@@ -152,13 +154,18 @@ def label(df:pd.DataFrame,  days_either_side:int=0) -> pd.DataFrame:
     Arguments
     ----------
     
-    - df: ```pandas.DataFrame```:
+    - ```df```: ```pandas.DataFrame```:
         Unlabelled dataframe, must contain columns ```[patient_id, start_date]```, where ```patient_id``` is the
         ids of participants and ```start_date``` is the time of the sensors.
 
-    - days_either_side: ```int```, optional:
+    - ```days_either_side```: ```int```, optional:
         The number of days either side of a label that will be given the same label.
         Defaults to ```0```.
+    
+    - ```return_event```: ```bool```, optional:
+        This dictates whether another column should be added, with a unique id given to each of the separate
+        UTI events. This allows the user to group the outputted data based on events.
+        Defaults to ```False```.
     
     
     
@@ -167,7 +174,8 @@ def label(df:pd.DataFrame,  days_either_side:int=0) -> pd.DataFrame:
     
     - df_labelled: ```pandas.DataFrame```:
         This is a dataframe containing the original data along with a new column, ```'labels'```,
-        which contains the labels.
+        which contains the labels. If ```return_event=True```, a column titled ```event``` will be 
+        added which contains unique IDs for each of the UTI episodes.
     
     
     
@@ -184,6 +192,9 @@ def label(df:pd.DataFrame,  days_either_side:int=0) -> pd.DataFrame:
     date_type = df['date'].dtype
     df_labels['patient_id'] = df_labels['patient_id'].astype(id_type)
     df_labels['date'] = df_labels['date'].astype(date_type)
+    
+    if return_event:
+        df_labels['uti_event'] = [uuid.uuid4() for _ in range(df_labels.shape[0])]
 
     # performing merge to add labels to the data
     logging.info('Performing merge with data and data labels.')
@@ -191,6 +202,7 @@ def label(df:pd.DataFrame,  days_either_side:int=0) -> pd.DataFrame:
     df_labelled = df_labelled.rename(columns={'outcome': 'uti_label'})
 
     return df_labelled
+
 
 
 
