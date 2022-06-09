@@ -336,9 +336,9 @@ def compute_daily_location_freq(df:pd.DataFrame,
 
 if __name__ == '__main__':
     data = dcarte.load('activity', 'raw')
-    entropy_daily, entropy_weekly = compute_entropy_rate(data, freq=['day','week'])
+    #entropy_daily, entropy_weekly = compute_entropy_rate(data, freq=['day','week'])
     bathroom_feq = compute_daily_location_freq(data, location='bathroom1')
     bathroom_freq_daytime = compute_daily_location_freq(data, location='bathroom1', time_range=['08:00', '20:00'])
     bathroom_freq_nighttime = compute_daily_location_freq(data, location='bathroom1', time_range=['20:00', '08:00'])
     bathroom_freq_nighttime['bathroom1_freq_ma'] = bathroom_freq_nighttime[['bathroom1_freq']].rolling(3).mean()
-    bathroom_freq_nighttime['bathroom1_freq_ma_delta'] = compute_delta(bathroom_freq_nighttime['bathroom1_freq_ma'])
+    bathroom_freq_nighttime['bathroom1_freq_ma_delta'] = compute_delta(bathroom_freq_nighttime['bathroom1_freq_ma'].values, pad=True)
