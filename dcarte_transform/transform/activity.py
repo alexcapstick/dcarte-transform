@@ -4,7 +4,7 @@ import typing
 from pydtmc import MarkovChain
 import tqdm
 import dcarte
-from utils import compute_delta
+from .utils import compute_delta
 
 def compute_week_number(df:pd.DataFrame):
     '''
