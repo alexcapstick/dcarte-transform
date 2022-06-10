@@ -102,6 +102,29 @@ class AEModel(BaseModel):
         '''
         An auto-encoder model, built to be run similar to sklearn models.
 
+        Example
+        ---------
+        ```
+        ae_model = AEModel(n_input=100, 
+                            n_embedding=5, 
+                            n_layers=2,
+                            n_epochs = 2,
+                            verbose=True,
+                            batch_size=10,
+                            optimizer={'adam':{'lr':0.01}},
+                            criterion='mseloss',
+                            )
+
+        X = torch.tensor(np.random.random((10000,100))).float()
+        X_val = torch.tensor(np.random.random((10000,100))).float()
+
+        training_metrics = ae_model.fit(X=X, X_val=X_val)
+        output = ae_model.transform(X_test=X)
+
+
+        ```
+
+
         Arguments
         ---------
 
