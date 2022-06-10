@@ -17,11 +17,12 @@ setup(
     install_requires=[
                         "numpy>=1.22",
                         "pandas>=1.4",
-                        "matplotlib>=3.5.1",
+                        "matplotlib>=3.5",
                         "dcarte>=0.3",
-                        "scikit-learn>=1.1.1",
-                        "pydtmc>=6.10.0",
-                        "tqdm>=4.64.0",
-
+                        "scikit-learn>=1.1",
+                        "pydtmc>=6.10",
+                        "tqdm>=4.64",
+                        "tensorboard>=2.9",
+                        "pytorch-lightning>=1.6"
     ]
 )
