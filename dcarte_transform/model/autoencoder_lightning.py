@@ -207,7 +207,7 @@ class AEModel(BaseLightningModule):
         z = self.e(x)
         x_hat = self.d(z)
         loss = self.criterion(x_hat, x)
-        self.log('val_loss', loss)
+        self.log('val_loss', loss, prog_bar=True)
         return loss
     
     def predict_step(self, batch, batch_idx: int):
@@ -286,6 +286,7 @@ class AEModel(BaseLightningModule):
     def transform(self,
                     X_test:np.array=None, 
                     test_loader:torch.utils.data.DataLoader=None,
+                    **kwargs,
                   ):
         '''
         Method for transforming data based on the fit AE.
@@ -314,6 +315,7 @@ class AEModel(BaseLightningModule):
         return super(AEModel, self).predict(
                     test_loader=test_loader,
                     X_test=X_test, 
+                    **kwargs,
                     )
 
 

@@ -9,6 +9,7 @@ from .utils import MyData, get_optimizer_from_name, get_criterion_from_name
 from .optimizer import CombineOptimizers
 from .fitting import BasicModelFitter
 from .testing import BasicModelTesting
+from .progress import MyProgressBar
 import warnings
 import logging 
 
@@ -610,14 +611,6 @@ class BaseModel(nn.Module):
 
 
 
-
-
-
-
-
-
-
-
 ## pytorch lightning base models
 
 
@@ -640,6 +633,7 @@ class BaseLightningModule(pl.LightningModule):
                     enable_model_summary:bool=False,
                     pl_trainer_kwargs:dict={},
                     callbacks:list=[],
+                    log_every_n_steps=20,
                     ):
         '''
         An auto-encoder model, built to be run similar to sklearn models.
@@ -727,6 +721,7 @@ class BaseLightningModule(pl.LightningModule):
         self.callbacks = callbacks
         self.enable_model_summary = enable_model_summary
         self.verbose = verbose
+        self.log_every_n_steps = log_every_n_steps
 
         self._reset()
 
@@ -740,7 +735,9 @@ class BaseLightningModule(pl.LightningModule):
         logger = [pl.loggers.CSVLogger(save_dir='./', name=f'{type(self).__name__}_logs'), 
                     pl.loggers.TensorBoardLogger(save_dir='./', name=f'{type(self).__name__}_logs')]
 
-        call_backs_to_pass = [pl.callbacks.TQDMProgressBar(refresh_rate=10)]
+        #call_backs_to_pass = [pl.callbacks.TQDMProgressBar(refresh_rate=10)]
+        #call_backs_to_pass = [ProgressBar()]
+        call_backs_to_pass = [MyProgressBar(refresh_rate=10)]
         call_backs_to_pass.extend(self.callbacks)
 
         self.trainer = pl.Trainer(
@@ -750,6 +747,7 @@ class BaseLightningModule(pl.LightningModule):
                                 enable_progress_bar=self.verbose,
                                 callbacks=call_backs_to_pass,
                                 logger=logger,
+                                log_every_n_steps=self.log_every_n_steps,
                                 **self.pl_trainer_kwargs
                                 )
 
@@ -925,6 +923,7 @@ class BaseLightningModule(pl.LightningModule):
             X_val:typing.Union[np.array, None]=None,
             y_val:typing.Union[np.array, None]=None,
             val_loader:torch.utils.data.DataLoader=None,
+            ckpt_path=None,
             **kwargs,
             ):
         '''
@@ -992,7 +991,11 @@ class BaseLightningModule(pl.LightningModule):
 
         self._build_training_methods()
         
-        self.trainer.fit(self, train_dataloaders=train_loader, val_dataloaders=val_loader)
+        self.trainer.fit(self, 
+                            train_dataloaders=train_loader, 
+                            val_dataloaders=val_loader,
+                            ckpt_path=ckpt_path,
+                            )
 
 
 
