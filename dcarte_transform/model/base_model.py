@@ -16,7 +16,10 @@ from .testing import BasicModelTesting
 from .progress import MyProgressBar
 
 
-
+## pytorch lightning warnings
+warnings.filterwarnings("ignore", ".*does not have many workers.*")
+warnings.filterwarnings("ignore", '.*You defined a `validation_step` but have no `val_dataloader`.*')
+logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
 
 
 
@@ -610,14 +613,7 @@ class BaseModel(nn.Module):
 
 
 
-## pytorch lightning base models
 
-
-
-warnings.filterwarnings("ignore", ".*does not have many workers.*")
-warnings.filterwarnings("ignore", '.*You defined a `validation_step` but have no `val_dataloader`.*')
-warnings.filterwarnings("ignore", '.*does not have many workers which may be a bottleneck.*')
-logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
 
 
 class BaseLightningModule(pl.LightningModule):
