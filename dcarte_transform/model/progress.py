@@ -53,6 +53,7 @@ class MyProgressBar(TQDMProgressBar):
         bar = Tqdm(
             desc=self.sanity_check_description,
             position=(2 * self.process_position),
+            ascii=" ▖▘▝▗▚▞▉",
             disable=self.is_disabled,
             leave=False,
             dynamic_ncols=True,
@@ -66,6 +67,7 @@ class MyProgressBar(TQDMProgressBar):
             desc=self.train_description,
             initial=self.train_batch_idx,
             position=(2 * self.process_position),
+            ascii=" ▖▘▝▗▚▞▉",
             disable=self.is_disabled,
             leave=True,
             dynamic_ncols=True,
@@ -81,6 +83,7 @@ class MyProgressBar(TQDMProgressBar):
             desc=self.predict_description,
             initial=self.train_batch_idx,
             position=(2 * self.process_position),
+            ascii=" ▖▘▝▗▚▞▉",
             disable=self.is_disabled,
             leave=True,
             dynamic_ncols=True,
@@ -97,6 +100,7 @@ class MyProgressBar(TQDMProgressBar):
         bar = Tqdm(
             desc=self.validation_description,
             position=(2 * self.process_position + has_main_bar),
+            ascii=" ▖▘▝▗▚▞▉",
             disable=True, #self.is_disabled,
             leave= not has_main_bar,
             dynamic_ncols=True,
@@ -115,6 +119,7 @@ class MyProgressBar(TQDMProgressBar):
         bar = Tqdm(
             desc="Testing",
             position=(2 * self.process_position),
+            ascii=" ▖▘▝▗▚▞▉",
             disable=self.is_disabled,
             leave=True,
             dynamic_ncols=True,

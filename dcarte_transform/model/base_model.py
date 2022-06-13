@@ -4,17 +4,16 @@ import typing
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 import pytorch_lightning as pl
+import warnings
+import logging 
+import copy
 
+ 
 from .utils import MyData, get_optimizer_from_name, get_criterion_from_name
 from .optimizer import CombineOptimizers
 from .fitting import BasicModelFitter
 from .testing import BasicModelTesting
 from .progress import MyProgressBar
-import warnings
-import logging 
-
- 
-
 
 
 
@@ -711,8 +710,8 @@ class BaseLightningModule(pl.LightningModule):
 
         '''
         super(BaseLightningModule, self).__init__()
-        self.optimizer = optimizer
-        self.criterion = criterion
+        self.passed_optimizer = optimizer
+        self.passed_criterion = criterion
         self.pl_trainer_kwargs = pl_trainer_kwargs
         self.n_epochs = n_epochs
         self.accelerator = accelerator
@@ -894,23 +893,24 @@ class BaseLightningModule(pl.LightningModule):
         keys ```'optimizer'``` and ```'lr_scheduler'```,
         if one is being used.
         The optimizer is also saved in this class as an 
-        attribute ```.optimizer```.
+        attribute ```.optimizer```, which is built from
+        the input, saved in ```.passed_optimizer```.
         '''
         return {'optimizer': self.optimizer}
 
 
     def _build_training_methods(self):
         # optimizer
-        if type(self.optimizer) == dict:
-            self.optimizer = self._get_optimizer(self.optimizer)
+        if type(self.passed_optimizer) == dict:
+            self.optimizer = self._get_optimizer(self.passed_optimizer)
         else:
-            pass
+            self.optimizer = copy.deepcopy(self.passed_optimizer)
         
         # criterion
-        if type(self.criterion) == str:
-            self.criterion = self._get_criterion(self.criterion)
+        if type(self.passed_criterion) == str:
+            self.criterion = self._get_criterion(self.passed_criterion)
         else:
-            pass
+            self.criterion = copy.deepcopy(self.passed_criterion)
         
         self.built_training_method = True
 
@@ -971,8 +971,8 @@ class BaseLightningModule(pl.LightningModule):
 
         val_too = False if ((X_val is None) and (val_loader is None)) else True
 
-        device_now = ('cuda' if torch.cuda.is_available() else 'cpu') if self.device == 'auto' else self.device
-        self.to(device_now)
+        #device_now = ('cuda' if torch.cuda.is_available() else 'cpu') if self.device == 'auto' else self.device
+        #self.to(device_now)
 
         if train_loader is None:
             train_dataset = MyData(X, y)
@@ -1052,6 +1052,9 @@ class BaseLightningModule(pl.LightningModule):
                                                             shuffle=False,
                                                         **self.dl_kwargs)
         
+        #device_now = ('cuda' if torch.cuda.is_available() else 'cpu') if self.device == 'auto' else self.device
+        #self.to(device_now)
+
         output = self.trainer.predict(self, dataloaders=test_loader, return_predictions=True)
 
         if return_concat:

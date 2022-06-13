@@ -80,6 +80,7 @@ class BasicModelTesting:
                                         desc='Predicting', 
                                         total=len(test_loader),
                                         disable=not self.verbose,
+                                        ascii=" ▖▘▝▗▚▞▉",
                                         miniters=int(len(test_loader)/10)+1,
                                 )
 
