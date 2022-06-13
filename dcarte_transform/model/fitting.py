@@ -247,7 +247,7 @@ class BasicModelFitter:
             self.model.batch_end(self)
 
         self.tqdm_progress.update(1)
-        self.tqdm_progress.set_postfix(ordered_dict=self.tqdm_postfix, refresh=False)
+        self.tqdm_progress.set_postfix(ordered_dict=self.tqdm_postfix, refresh=True)
 
         return
 
@@ -448,7 +448,6 @@ class BasicModelFitter:
         for epoch in range(self.n_epochs):
             self.tqdm_postfix['Epoch'] = epoch+1
             self._fit_epoch(train_loader=train_loader, val_loader=val_loader)
-            self.tqdm_progress.refresh()
 
         if hasattr(self.model, 'traditional_train_end'):
             self.model.traditional_train_end(self)
