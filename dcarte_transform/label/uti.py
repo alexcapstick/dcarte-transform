@@ -47,7 +47,7 @@ def map_url_to_flag(urls:pd.Series) -> pd.Series:
 
 
 
-def get_labels(days_either_side:int=0) -> pd.DataFrame:
+def get_labels(days_either_side:int=0, return_event=False) -> pd.DataFrame:
     '''
     This function will return the UTI labels.
     
@@ -62,6 +62,10 @@ def get_labels(days_either_side:int=0) -> pd.DataFrame:
         be used for the overlapping days.
         Defaults to ```0```.
     
+    - ```return_event```: ```bool```, optional:
+        This dictates whether another column should be added, with a unique id given to each of the separate
+        UTI events. This allows the user to group the outputted data based on events.
+        Defaults to ```False```.
     
     
     Returns
@@ -118,6 +122,8 @@ def get_labels(days_either_side:int=0) -> pd.DataFrame:
     df_labels['date'] = pd.to_datetime(df_labels['date']).dt.date
     df_labels = df_labels.dropna()
     df_labels = df_labels.drop_duplicates()
+    if return_event:
+        df_labels['uti_event'] = [uuid.uuid4() for _ in range(df_labels.shape[0])]
 
     # extending the label either side of the date
     if not days_either_side == 0:
@@ -132,6 +138,7 @@ def get_labels(days_either_side:int=0) -> pd.DataFrame:
             return x
         df_labels = df_labels.groupby(['patient_id', 
                                         'date', 
+                                        'uti_event',
                                         'outcome']).apply(dates_either_side_group_by
                                                 ).reset_index(drop=True)
 
@@ -188,7 +195,7 @@ def label(df:pd.DataFrame, datetime_col:str='start_date',
     '''
     assert type(days_either_side) == int, 'days_either_side must be an integer.'
 
-    df_labels = get_labels(days_either_side=days_either_side)
+    df_labels = get_labels(days_either_side=days_either_side, return_event=return_event)
 
     df['date'] = pd.to_datetime(df[datetime_col]).dt.date
 
@@ -198,9 +205,6 @@ def label(df:pd.DataFrame, datetime_col:str='start_date',
     date_type = df['date'].dtype
     df_labels['patient_id'] = df_labels['patient_id'].astype(id_type)
     df_labels['date'] = df_labels['date'].astype(date_type)
-    
-    if return_event:
-        df_labels['uti_event'] = [uuid.uuid4() for _ in range(df_labels.shape[0])]
 
     # performing merge to add labels to the data
     logging.info('Performing merge with data and data labels.')
