@@ -47,7 +47,7 @@ def map_url_to_flag(urls:pd.Series) -> pd.Series:
 
 
 
-def get_labels(days_either_side:int=0, return_event=False) -> pd.DataFrame:
+def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     '''
     This function will return the UTI labels.
     
@@ -152,7 +152,7 @@ def get_labels(days_either_side:int=0, return_event=False) -> pd.DataFrame:
 
 @dcarte.utils.timer('mapping UTI labels')
 def label(df:pd.DataFrame, datetime_col:str='start_date', 
-            days_either_side:int=0, return_event=False) -> pd.DataFrame:
+            days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     '''
     This function will label the input dataframe based on the uti data 
     in ```procedure```.
