@@ -23,6 +23,7 @@ setup(
                         "pydtmc>=6.10",
                         "tqdm>=4.64",
                         "tensorboard>=2.9",
-                        "pytorch-lightning>=1.6"
+                        "pytorch-lightning>=1.6",
+                        "pandarallel>=1.6",
     ]
 )

@@ -11,7 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 import typing
 import tqdm
 from collections import OrderedDict
-
+from ..utils.progress import tqdm_style
 
 
 
@@ -438,9 +438,9 @@ class BasicModelFitter:
                                 total=self.n_epochs*len(train_loader), 
                                 desc='Training', 
                                 dynamic_ncols=True,
-                                ascii=" ▖▘▝▗▚▞▉",
                                 disable=not self.verbose,
                                 miniters=int(len(train_loader)/10)+1,
+                                **tqdm_style,
                                 )
 
         self.tqdm_postfix = OrderedDict([])

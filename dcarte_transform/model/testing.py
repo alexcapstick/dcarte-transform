@@ -3,7 +3,7 @@ import torch
 import time
 import tqdm
 
-
+from ..utils.progress import tqdm_style
 
 
 class BasicModelTesting:
@@ -80,8 +80,8 @@ class BasicModelTesting:
                                         desc='Predicting', 
                                         total=len(test_loader),
                                         disable=not self.verbose,
-                                        ascii=" ▖▘▝▗▚▞▉",
                                         miniters=int(len(test_loader)/10)+1,
+                                        **tqdm_style,
                                 )
 
         for nb, inputs in enumerate(test_loader):

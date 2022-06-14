@@ -5,6 +5,7 @@ from pydtmc import MarkovChain
 import tqdm
 import dcarte
 from .utils import compute_delta
+from ..utils.progress import tqdm_style
 
 def compute_week_number(df:pd.DataFrame):
     '''
@@ -206,7 +207,7 @@ def compute_entropy_rate(df: pd.DataFrame,
     outputs = []
 
     # daily entropy calculations
-    tqdm.tqdm.pandas(desc="Calculating daily entropy")
+    tqdm.tqdm.pandas(desc="Calculating daily entropy", **tqdm_style)
     if 'day' in freq:
         daily_entropy = df.groupby(by=['patient_id',
                             pd.Grouper(key=datetime_col, freq='1d')])[location_col]\
@@ -215,7 +216,7 @@ def compute_entropy_rate(df: pd.DataFrame,
         outputs.append(daily_entropy)
 
     # weekly entropy calculations
-    tqdm.tqdm.pandas(desc="Calculating weekly entropy")
+    tqdm.tqdm.pandas(desc="Calculating weekly entropy", **tqdm_style)
     if 'week' in freq:
         weekly_entropy = df.groupby(by=['patient_id',
                             pd.Grouper(key=datetime_col, freq='W-SUN')])[location_col]\

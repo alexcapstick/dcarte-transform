@@ -238,21 +238,12 @@ class AEModel(BaseLightningModule):
             The input array to fit the model on.
             Defaults to ```None```.
 
-        - ```y```: ```numpy.array``` or ```None```, optional:
-            The target array to fit the model on.
-            Defaults to ```None```.
-
         - ```train_loader```: ```torch.utils.data.DataLoader``` or ```None```, optional:
             The training data, which contains the input and the targets.
             Defaults to ```None```.
 
         - ```X_val```: ```numpy.array``` or ```None```, optional:
             The validation input to calculate validation 
-            loss on when training the model.
-            Defaults to ```None```
-
-        - ```X_val```: ```numpy.array``` or ```None```, optional:
-            The validation target to calculate validation 
             loss on when training the model.
             Defaults to ```None```
 
