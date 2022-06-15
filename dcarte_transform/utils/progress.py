@@ -10,8 +10,11 @@ tqdm_style = {
                 }
 
 
+
+
 # monkey patch the progress bar in 
 # https://github.com/nalepae/pandarallel/blob/bb0f50faf9bd3e8e548736040d297613d4482eaa/pandarallel/progress_bars.py#L19
+
 class TQDMProgressBarPandarallelGenerator:
     def __init__(self, **tqdm_kwargs):
         self.tqdm_kwargs = tqdm_kwargs

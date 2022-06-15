@@ -129,6 +129,7 @@ def compute_entropy_rate_from_sequence(sequence):
 
 @dcarte.utils.timer('calculating entropy')
 def compute_entropy_rate(df: pd.DataFrame, 
+                        id_col:str='patient_id',
                         datetime_col:str='start_date',
                         location_col:str='location_name',
                         sensors:typing.Union[typing.List[str], str] = 'all', 
@@ -136,7 +137,7 @@ def compute_entropy_rate(df: pd.DataFrame,
                                                                                         typing.List[pd.DataFrame]]:
     '''
     This function allows the user to return a pandas.DataFrame with the entropy rate calculated
-    for every week or day. The dataframe must contain ```'patient_id'```, and columns containing the 
+    for every week or day. The dataframe must contain ```[id_col]```, and columns containing the 
     visited location names and the date and time of these location visits.
     
     
@@ -158,9 +159,13 @@ def compute_entropy_rate(df: pd.DataFrame,
     ---------
     
     - ```df```: ```pandas.DataFrame```: 
-        A data frame containing ```'patient_id'```, and columns containing the 
-        visited location names and the date and time of these location visits.
+        A data frame containing columns with the participant IDs,
+        visited location names, and the date and time of these location visits.
     
+    - ```id_col```: ```str```, optional:
+        The name of the column that contains the participant IDs.
+        Defaults to ```'start_date'```.
+
     - ```datetime_col```: ```str```, optional:
         The name of the column that contains the date time of location visits.
         Defaults to ```'start_date'```.
@@ -186,7 +191,9 @@ def compute_entropy_rate(df: pd.DataFrame,
     
     - ```out```: ```pd.DataFrame```: 
         returns a list of data frames containing the weekly and daily entropy
-        or  single dataframe if only one ```freq``` was given.
+        or single dataframe if only one ```freq``` was given.
+        For weekly entropy, the date label corresponds to the start of the week,
+        starting from Sunday.
     
     
     '''
@@ -209,19 +216,25 @@ def compute_entropy_rate(df: pd.DataFrame,
     # daily entropy calculations
     tqdm.tqdm.pandas(desc="Calculating daily entropy", **tqdm_style)
     if 'day' in freq:
-        daily_entropy = df.groupby(by=['patient_id',
-                            pd.Grouper(key=datetime_col, freq='1d')])[location_col]\
-                                .progress_apply(lambda x: compute_entropy_rate_from_sequence(x.values)).reset_index()
-        daily_entropy.columns = ['patient_id', 'date', 'daily_entropy']
+        daily_entropy = (df
+                            .groupby(by=[id_col, pd.Grouper(key=datetime_col, freq='1d', label='left')])
+                            [location_col]
+                            .progress_apply(lambda x: compute_entropy_rate_from_sequence(x.values))
+                            .reset_index()
+                            )
+        daily_entropy.columns = [id_col, 'date', 'daily_entropy']
         outputs.append(daily_entropy)
 
     # weekly entropy calculations
     tqdm.tqdm.pandas(desc="Calculating weekly entropy", **tqdm_style)
     if 'week' in freq:
-        weekly_entropy = df.groupby(by=['patient_id',
-                            pd.Grouper(key=datetime_col, freq='W-SUN')])[location_col]\
-                            .progress_apply(lambda x: compute_entropy_rate_from_sequence(x.values)).reset_index()
-        weekly_entropy.columns = ['patient_id', 'date', 'weekly_entropy']
+        weekly_entropy = (df
+                            .groupby(by=[id_col, pd.Grouper(key=datetime_col, freq='W-SUN', label='left')])
+                            [location_col]
+                            .progress_apply(lambda x: compute_entropy_rate_from_sequence(x.values))
+                            .reset_index()
+                            )
+        weekly_entropy.columns = [id_col, 'date', 'weekly_entropy']
         outputs.append(weekly_entropy)
     
     if len(outputs) > 1:
@@ -237,6 +250,7 @@ def compute_entropy_rate(df: pd.DataFrame,
 @dcarte.utils.timer('calculating daily location frequency')
 def compute_daily_location_freq(df:pd.DataFrame, 
                             location:str, 
+                            id_col:str='patient_id',
                             location_col:str='location_name', 
                             datetime_col:str='start_date', 
                             time_range:typing.Union[None, typing.List[str]]=None, 
@@ -271,6 +285,10 @@ def compute_daily_location_freq(df:pd.DataFrame,
     - ```location```: ```str```:
         The location name to calculate the frequencies for.
     
+    - ```id_col```: ```str```, optional:
+        The name of the ID column that contains the participant IDs.
+        Defaults to ```'patient_id'```.
+
     - ```location_col```: ```str```, optional:
         The name of the location column that contains the visited location.
         Defaults to ```'location_name'```.
@@ -301,7 +319,7 @@ def compute_daily_location_freq(df:pd.DataFrame,
 
     ```table_of_frequencies```: ```pandas.DataFrame```:
         The table containing the frequencies, with column names
-        ```'patient_id'```, ```'date'``` and ```[name]``` or 
+        ```[id_col]```, ```'date'``` and ```[name]``` or 
         ```[location]_freq```.
 
 
@@ -310,15 +328,15 @@ def compute_daily_location_freq(df:pd.DataFrame,
 
     data = df.copy()
     data[datetime_col] = pd.to_datetime(data[datetime_col])
-    data = data[data[location_col] == location][['patient_id', datetime_col, location_col]]
+    data = data[data[location_col] == location][[id_col, datetime_col, location_col]]
     if time_range is None:
         data = data.set_index(datetime_col).reset_index()
     else:
         data = data.set_index(datetime_col).between_time(*time_range, inclusive='left').reset_index()
     data['date'] = data[datetime_col].dt.date
-    data = data.groupby(['patient_id', 'date'])[location_col].count().reset_index()
+    data = data.groupby([id_col, 'date'])[location_col].count().reset_index()
     name = name if name is not None else f'{location}_freq'
-    data.columns = ['patient_id', 'date', name]
+    data.columns = [id_col, 'date', name]
 
     return data
 
@@ -333,11 +351,9 @@ def compute_daily_location_freq(df:pd.DataFrame,
 
 
 
-
-
 if __name__ == '__main__':
     data = dcarte.load('activity', 'raw')
-    #entropy_daily, entropy_weekly = compute_entropy_rate(data, freq=['day','week'])
+    entropy_daily, entropy_weekly = compute_entropy_rate(data, freq=['day','week'])
     bathroom_feq = compute_daily_location_freq(data, location='bathroom1')
     bathroom_freq_daytime = compute_daily_location_freq(data, location='bathroom1', time_range=['08:00', '20:00'])
     bathroom_freq_nighttime = compute_daily_location_freq(data, location='bathroom1', time_range=['20:00', '08:00'])
