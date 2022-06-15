@@ -2,3 +2,4 @@ dcarte_transform.egg-info/
 **/__pycache__/
 nohup/*
 **/.DS_Store
+recipe_template.py
