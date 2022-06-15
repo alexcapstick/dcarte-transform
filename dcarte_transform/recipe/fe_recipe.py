@@ -276,5 +276,10 @@ if __name__ == '__main__':
                                                             time_range=['08:00', '20:00'],
                                                             rolling_window=3,
                                                             )
-
     
+    entropy_daily = process_entropy_data(
+                                            activity, 
+                                            freq='day',
+                                            id_col='patient_id', 
+                                            datetime_col='start_date',
+                                            )
