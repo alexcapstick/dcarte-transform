@@ -3,7 +3,7 @@ import os
 import sys
 import numpy as np
 import typing
-from functools import partial
+import functools
 from pandarallel import pandarallel as pandarallel_
 
 import dcarte
@@ -12,7 +12,7 @@ from dcarte.local import LocalDataset
 from dcarte.config import get_config
 
 from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
-from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta
+from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta, relative_func_delta
 from dcarte_transform.transform.activity import compute_daily_location_freq, compute_entropy_rate
 
 import logging
@@ -50,6 +50,7 @@ def process_sleep(
 
     df_grouped.columns = df_grouped.columns.map('|'.join).str.strip('|')
     df_grouped = df_grouped.rename({datetime_col: 'date'}, axis=1)
+    df_grouped['date'] = df_grouped['date'].dt.date
 
     dtypes = {
                 id_col: 'category',
@@ -79,10 +80,13 @@ def process_sleep(
 @dcarte.utils.timer('processing relative_transition data')
 def process_relative_transitions(
                                     df:pd.DataFrame, 
+                                    funcs:typing.Union[typing.List[typing.Callable], typing.Callable],
                                     id_col:str,
                                     transition_col:str,
                                     datetime_col:str,
                                     duration_col:str,
+                                    sink_col:str,
+                                    source_col:str,
                                     filter_sink:typing.Union[None,typing.List[str]]=None, 
                                     filter_source:typing.Union[None,typing.List[str]]=None,
                                     transition_time_upper_bound:float=5*60,
@@ -99,32 +103,28 @@ def process_relative_transitions(
     if not filter_sink is None:
         if type(filter_sink) == str:
             filter_sink = [filter_sink]
-        df = df[df['sink'].isin(filter_sink)] 
+        df = df[df[sink_col].isin(filter_sink)] 
 
     # filtering the source values
     if not filter_source is None:
         if type(filter_source) == str:
             filter_source = [filter_source]
-        df = df[df['sink'].isin(filter_source)] 
-    
+        df = df[df[source_col].isin(filter_source)] 
+
+
+    if not type(funcs) == list:
+        funcs = [funcs]
+
     # setting up parallel compute
-    pandarallel_progress(desc="Computing transition median deltas", smoothing=0, **tqdm_style)
+    pandarallel_progress(desc="Computing transition function deltas", smoothing=0, **tqdm_style)
     pandarallel_.initialize(progress_bar=True, verbose=0)
 
-
-    # relative median function
-    def relative_median_delta(array_sample, array_distribution):
-        import numpy as np # import within function required for parallel compute on Windows
-        median_sample = np.median(array_sample)
-        median_distribution = np.median(array_distribution)
-        if median_distribution == 0:
-            return np.nan
-        return (median_sample-median_distribution)/median_distribution
+    df[datetime_col] = pd.to_datetime(df[datetime_col])
 
     # setting up arguments for the rolling calculations
-    datetime_compare_rolling_partial = partial(
+    datetime_compare_rolling_partial = functools.partial(
                                         datetime_compare_rolling, 
-                                        funcs=[relative_median_delta], 
+                                        funcs=funcs, 
                                         s=s, 
                                         w_distribution=w_distribution, 
                                         w_sample=w_sample, 
@@ -135,25 +135,27 @@ def process_relative_transitions(
 
     # running calculations
     daily_rel_transitions = (df
-                            [[id_col, transition_col, datetime_col, duration_col]]
+                            [[id_col, transition_col, source_col, sink_col, datetime_col, duration_col]]
                             .sort_values(datetime_col)
                             .dropna()
-                            .groupby(by=[id_col, transition_col,])
+                            .groupby(by=[id_col, source_col, sink_col, transition_col,])
                             .parallel_apply(datetime_compare_rolling_partial)
+                            #.apply(datetime_compare_rolling_partial)
                         )
 
     # formatting
     daily_rel_transitions[datetime_col] = pd.to_datetime(daily_rel_transitions[datetime_col]).dt.date
     daily_rel_transitions = (daily_rel_transitions
                                 .reset_index(drop=False)
-                                .drop(['level_2',], axis=1)
+                                .drop(['level_4',], axis=1)
                                 .rename({datetime_col: 'date'}, axis=1))
 
     dtypes = {
                 id_col: 'category',
                 transition_col: 'category',
                 'date': 'object',
-                'relative_median_delta': 'float',
+                'source': 'category',
+                'sink': 'category',
                 }
 
     return daily_rel_transitions.astype(dtypes)
@@ -173,8 +175,12 @@ def process_location_time_stats(
                                     datetime_col:str,
                                     time_range:typing.Union[None, typing.List[str]]=None, 
                                     rolling_window:int=3,
+                                    name:typing.Union[str, None]=None,
                                     ):
     df = df.copy()
+
+    if name is None:
+        name = f'{location_name}'
 
     # computing the location frequency for the given location
     df = compute_daily_location_freq(df, 
@@ -183,16 +189,16 @@ def process_location_time_stats(
                                         location_col=location_col,
                                         datetime_col=datetime_col,
                                         time_range=time_range, 
-                                        name=f'{location_name}_freq')
+                                        name=f'{name}_freq')
 
     # computing moving average
-    df[f'{location_name}_freq_ma'] = (df
-                                        [[f'{location_name}_freq']]
-                                        .rolling(rolling_window)
-                                        .mean())
+    df[f'{name}_freq_ma'] = (df
+                                [[f'{name}_freq']]
+                                .rolling(rolling_window)
+                                .mean())
 
     # computing the delta in the moving average
-    df[f'{location_name}_freq_ma_delta'] = compute_delta(df[f'{location_name}_freq_ma'].values,
+    df[f'{name}_freq_ma_delta'] = compute_delta(df[f'{name}_freq_ma'].values,
                                                             pad=True
                                                             )
 
@@ -200,9 +206,9 @@ def process_location_time_stats(
     dtypes = {
                 id_col: 'category',
                 'date': 'object',
-                f'{location_name}_freq': 'int',
-                f'{location_name}_freq_ma': 'float',
-                f'{location_name}_freq_ma_delta': 'float',
+                f'{name}_freq': 'int',
+                f'{name}_freq_ma': 'float',
+                f'{name}_freq_ma_delta': 'float',
                 }
 
     return df.astype(dtypes)
@@ -245,11 +251,9 @@ def process_entropy_data(
 
 
 
-
-
 ### still under production
 if __name__ == '__main__':
-    
+
     sleep = dcarte.load('sleep', 'base')
     sleep_stats = process_sleep(
                                 sleep, 
@@ -266,7 +270,9 @@ if __name__ == '__main__':
                                                             datetime_col='start_date',
                                                             time_range=['20:00', '08:00'],
                                                             rolling_window=3,
+                                                            name='bathroom_nighttime',
                                                             )
+
     bathroom_freq_daytime = process_location_time_stats(
                                                             activity, 
                                                             location_name='bathroom1', 
@@ -275,11 +281,44 @@ if __name__ == '__main__':
                                                             datetime_col='start_date',
                                                             time_range=['08:00', '20:00'],
                                                             rolling_window=3,
+                                                            name='bathroom_daytime',
                                                             )
-    
+
     entropy_daily = process_entropy_data(
                                             activity, 
                                             freq='day',
                                             id_col='patient_id', 
                                             datetime_col='start_date',
+                                            location_col='location_name'
+                                            )
+
+
+    relative_mean_delta = functools.partial(relative_func_delta, func=np.mean)
+    relative_std_delta = functools.partial(relative_func_delta, func=np.std)
+
+    transitions = dcarte.load('transitions', 'base')
+    bathroom_relative_transitions = process_relative_transitions(
+                                                        df=transitions,
+                                                        funcs=[
+                                                                relative_mean_delta,
+                                                                relative_std_delta
+                                                                ],
+                                                        id_col='patient_id',
+                                                        transition_col='transition',
+                                                        datetime_col='start_date',
+                                                        duration_col='dur',
+                                                        sink_col='sink',
+                                                        source_col='source',
+                                                        filter_sink='Bathroom',
+                                                        filter_source=None,
+                                                        transition_time_upper_bound=5*60,
+                                                        s='1d',
+                                                        w_distribution='7d',
+                                                        w_sample='1d',
+                                                        )
+
+    bathroom_relative_transitions = (bathroom_relative_transitions
+                                            .groupby(by=['patient_id', 'sink', 'date'])
+                                            .mean()
+                                            .reset_index(drop=False)
                                             )

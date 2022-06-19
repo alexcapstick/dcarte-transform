@@ -19,7 +19,7 @@ setup(
                         "pandas>=1.4",
                         "matplotlib>=3.5",
                         "dcarte>=0.3",
-                        "scikit-learn>=1.1",
+                        "scikit-learn>=1.0",
                         "pydtmc>=6.10",
                         "tqdm>=4.64",
                         "tensorboard>=2.9",

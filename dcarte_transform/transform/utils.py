@@ -1,6 +1,8 @@
+from unittest import result
 import numpy as np
 import pandas as pd
-
+import functools
+import logging
 
 
 def _split_apply_func(array:np.array, mask:np.array, func):
@@ -82,6 +84,27 @@ def moving_average(array:np.array, w:int=3, pad:bool=False,):
     
     return ma
 
+
+# relative median function
+def relative_median_delta(array_sample, array_distribution):
+    logging.warning('relative_median_delta is still under production')
+    import numpy as np # import within function required for parallel compute on Windows
+    funced_sample = np.median(array_sample)
+    funced_distribution = np.median(array_distribution)
+    if funced_distribution == 0:
+        return np.nan
+    return (funced_sample-funced_distribution)/funced_distribution
+
+
+
+# relative median function
+def relative_func_delta(array_sample, array_distribution, func):
+    logging.warning('relative_func_delta is still under production')
+    funced_sample = func(array_sample)
+    funced_distribution = func(array_distribution)
+    if funced_distribution == 0:
+        return np.nan
+    return (funced_sample-funced_distribution)/funced_distribution
 
 
 
@@ -211,8 +234,7 @@ def datetime_rolling(
     start_date = pd.to_datetime(min_date.date())
     end_date = start_date+pd.Timedelta(w)
 
-    result_dict = {func.__name__:[] for func in funcs}
-    result_dict[datetime_col] = []
+    result_dict = {datetime_col: []}
     
     # iterating over the windows
     while end_date<max_date:
@@ -220,13 +242,21 @@ def datetime_rolling(
         result_dict[datetime_col].append(end_date if label == 'right' else start_date)
         # iterating over the functions
         for func in funcs:
-            if len(values) == 0:
-                result_dict[func.__name__].append(np.nan)
+            if type(func) is functools.partial:
+                func_name = func.keywords['func'].__name__
             else:
-                result_dict[func.__name__].append(func(values))
+                func_name = func.__name__
+
+            if not func_name in result_dict:
+                result_dict[func_name] = []
+
+            if len(values) == 0:
+                result_dict[func_name].append(np.nan)
+            else:
+                result_dict[func_name].append(func(values))
         start_date += pd.Timedelta(s)
         end_date += pd.Timedelta(s)
-    
+
     return pd.DataFrame(result_dict)
 
 
@@ -402,7 +432,6 @@ def datetime_compare_rolling(df:pd.DataFrame,
     
     result_dict = OrderedDict([])
     result_dict[datetime_col] = []
-    for func in funcs: result_dict[func.__name__] = []
     
     # iterating over the windows
     while end_date<max_date:
@@ -422,11 +451,21 @@ def datetime_compare_rolling(df:pd.DataFrame,
         
         # iterating over the windows
         for func in funcs:
+
+            if type(func) is functools.partial:
+                func_name = func.keywords['func'].__name__
+            else:
+                func_name = func.__name__
+            
+            if not f'{func_name}_relative_delta' in result_dict:
+                result_dict[f'{func_name}_relative_delta'] = []
+
+
             if len(distribution_values) == 0 or len(sample_values) == 0:
-                result_dict[func.__name__].append(np.nan)
+                result_dict[f'{func_name}_relative_delta'].append(np.nan)
             else:
                 func_result = func(sample_values, distribution_values)
-                result_dict[func.__name__].append(func_result)
+                result_dict[f'{func_name}_relative_delta'].append(func_result)
         start_date += pd.Timedelta(s)
         end_date += pd.Timedelta(s)
         distribution_end_date += pd.Timedelta(s)

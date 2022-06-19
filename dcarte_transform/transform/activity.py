@@ -127,7 +127,7 @@ def compute_entropy_rate_from_sequence(sequence):
 
 
 
-@dcarte.utils.timer('calculating entropy')
+@dcarte.utils.timer('calculating entropy rate')
 def compute_entropy_rate(df: pd.DataFrame, 
                         id_col:str='patient_id',
                         datetime_col:str='start_date',
@@ -223,6 +223,7 @@ def compute_entropy_rate(df: pd.DataFrame,
                             .reset_index()
                             )
         daily_entropy.columns = [id_col, 'date', 'daily_entropy']
+        daily_entropy['date'] = daily_entropy['date'].dt.date
         outputs.append(daily_entropy)
 
     # weekly entropy calculations
@@ -235,6 +236,7 @@ def compute_entropy_rate(df: pd.DataFrame,
                             .reset_index()
                             )
         weekly_entropy.columns = [id_col, 'date', 'weekly_entropy']
+        weekly_entropy['date'] = weekly_entropy['date'].dt.date
         outputs.append(weekly_entropy)
     
     if len(outputs) > 1:
