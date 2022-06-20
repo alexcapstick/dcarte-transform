@@ -62,8 +62,8 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     
     - ```days_either_side```: ```int```, optional:
         The number of days either side of a label that will be given the same label.
-        If these days overlap, the label produced by the most recent true date will
-        be used for the overlapping days.
+        If these days overlap, if the label is the same then the first will be kept.
+        If they are different, then neither will be kept.
         Defaults to ```0```.
     
     - ```return_event```: ```bool```, optional:
@@ -163,7 +163,7 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
 
 
 @dcarte.utils.timer('mapping UTI labels')
-def label(df:pd.DataFrame, datetime_col:str='start_date', 
+def label(df:pd.DataFrame, id_col:str='patient_id', datetime_col:str='start_date', 
             days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     '''
     This function will label the input dataframe based on the uti data 
@@ -175,10 +175,13 @@ def label(df:pd.DataFrame, datetime_col:str='start_date',
     ----------
     
     - ```df```: ```pandas.DataFrame```:
-        Unlabelled dataframe, must contain columns ```['patient_id', 'start_date']```, where ```'patient_id'``` is the
-        ids of participants and ```'start_date'``` is the time of the sensors. If the dataframe does not 
-        contain ```'start_date'```, then pass the date time column name to ```datetime_col```.
-    
+        Unlabelled dataframe, must contain columns ```[id_col, datetime_col]```, where ```id_col``` is the
+        ids of participants and ```datetime_col``` is the time of the sensors.
+
+    - ```id_col```: ```str```, optional:
+        The column name that contains the ID information.
+        Defaults to ```'patient_id'```.
+
     - ```datetime_col```: ```str```, optional:
         The column name that contains the date time information.
         Defaults to ```'start_date'```.
@@ -198,8 +201,8 @@ def label(df:pd.DataFrame, datetime_col:str='start_date',
     ---------
     
     - df_labelled: ```pandas.DataFrame```:
-        This is a dataframe containing the original data along with a new column, ```'labels'```,
-        which contains the labels. If ```return_event=True```, a column titled ```event``` will be 
+        This is a dataframe containing the original data along with a new column, ```'uti_labels'```,
+        which contains the labels. If ```return_event=True```, a column titled ```'uti_event'``` will be 
         added which contains unique IDs for each of the UTI episodes.
     
     
@@ -213,15 +216,19 @@ def label(df:pd.DataFrame, datetime_col:str='start_date',
 
     # ensure the joining series have the same types
     logging.info('Making sure the pandas columns that are used for the join have the same type.')
-    id_type = df['patient_id'].dtype
+    id_type = df[id_col].dtype
     date_type = df['__date__'].dtype
-    df_labels['patient_id'] = df_labels['patient_id'].astype(id_type)
+    df_labels['patient_id'] = (df_labels
+                                ['patient_id']
+                                .astype(id_type)
+                                )
+    df_labels = df_labels.rename({'patient_id': id_col}, axis=1)
     df_labels['date'] = df_labels['date'].astype(date_type)
     df_labels = df_labels.rename({'date': '__date__'}, axis=1)
 
     # performing merge to add labels to the data
     logging.info('Performing merge with data and data labels.')
-    df_labelled = pd.merge(df, df_labels, how='left', on=['patient_id', '__date__']).drop('__date__', axis=1).copy()
+    df_labelled = pd.merge(df, df_labels, how='left', on=[id_col, '__date__']).drop('__date__', axis=1).copy()
     df_labelled = df_labelled.rename(columns={'outcome': 'uti_label'})
 
     return df_labelled

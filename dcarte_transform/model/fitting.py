@@ -106,7 +106,7 @@ class BasicModelFitter:
                     writer:torch.utils.tensorboard.SummaryWriter=None,
                     ):
         '''
-        This class can be used to find a model and perform inference.
+        This class can be used to fit a model and perform inference.
 
 
         Arguments

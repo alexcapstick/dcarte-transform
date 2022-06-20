@@ -5,7 +5,8 @@ from pydtmc import MarkovChain
 import tqdm
 import dcarte
 from .utils import compute_delta
-from ..utils.progress import tqdm_style
+from ..utils.progress import tqdm_style, pandarallel_progress
+from pandarallel import pandarallel as pandarallel_
 
 def compute_week_number(df:pd.DataFrame):
     '''
@@ -108,6 +109,9 @@ def compute_entropy_rate_from_sequence(sequence):
 
 
     '''
+    # imports required for parallel compute on windows
+    import numpy as np
+    from pydtmc import MarkovChain
 
     p_matrix = compute_p_matrix(sequence)
 
@@ -198,6 +202,8 @@ def compute_entropy_rate(df: pd.DataFrame,
     
     '''
 
+    from dcarte_transform.transform.activity import compute_entropy_rate_from_sequence
+
     assert len(sensors) >= 2, 'need at least two sensors to calculate the entropy'
 
     df = df.sort_values(datetime_col).copy()
@@ -216,10 +222,14 @@ def compute_entropy_rate(df: pd.DataFrame,
     # daily entropy calculations
     tqdm.tqdm.pandas(desc="Calculating daily entropy", **tqdm_style)
     if 'day' in freq:
-        daily_entropy = (df
+        # setting up parallel compute
+        pandarallel_progress(desc="Computing daily entropy", smoothing=0, **tqdm_style)
+        pandarallel_.initialize(progress_bar=True, verbose=0)
+
+        daily_entropy = df[[id_col, datetime_col, location_col]].copy()
+        daily_entropy = (daily_entropy
                             .groupby(by=[id_col, pd.Grouper(key=datetime_col, freq='1d', label='left')])
-                            [location_col]
-                            .progress_apply(lambda x: compute_entropy_rate_from_sequence(x.values))
+                            .parallel_apply(lambda x: compute_entropy_rate_from_sequence(x[location_col].values))
                             .reset_index()
                             )
         daily_entropy.columns = [id_col, 'date', 'daily_entropy']
@@ -229,10 +239,14 @@ def compute_entropy_rate(df: pd.DataFrame,
     # weekly entropy calculations
     tqdm.tqdm.pandas(desc="Calculating weekly entropy", **tqdm_style)
     if 'week' in freq:
-        weekly_entropy = (df
+
+        pandarallel_progress(desc="Computing weekly entropy", smoothing=0, **tqdm_style)
+        pandarallel_.initialize(progress_bar=True, verbose=0)
+
+        weekly_entropy = df[[id_col, datetime_col, location_col]].copy()
+        weekly_entropy = (weekly_entropy
                             .groupby(by=[id_col, pd.Grouper(key=datetime_col, freq='W-SUN', label='left')])
-                            [location_col]
-                            .progress_apply(lambda x: compute_entropy_rate_from_sequence(x.values))
+                            .parallel_apply(lambda x: compute_entropy_rate_from_sequence(x[location_col].values))
                             .reset_index()
                             )
         weekly_entropy.columns = [id_col, 'date', 'weekly_entropy']
