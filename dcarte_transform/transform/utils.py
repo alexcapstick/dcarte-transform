@@ -85,21 +85,9 @@ def moving_average(array:np.array, w:int=3, pad:bool=False,):
     return ma
 
 
-# relative median function
-def relative_median_delta(array_sample, array_distribution):
-    logging.warning('relative_median_delta is still under production')
-    import numpy as np # import within function required for parallel compute on Windows
-    funced_sample = np.median(array_sample)
-    funced_distribution = np.median(array_distribution)
-    if funced_distribution == 0:
-        return np.nan
-    return (funced_sample-funced_distribution)/funced_distribution
-
-
 
 # relative median function
 def relative_func_delta(array_sample, array_distribution, func):
-    logging.warning('relative_func_delta is still under production')
     funced_sample = func(array_sample)
     funced_distribution = func(array_distribution)
     if funced_distribution == 0:
