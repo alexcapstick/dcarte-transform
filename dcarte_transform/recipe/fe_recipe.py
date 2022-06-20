@@ -1,28 +1,21 @@
 import pandas as pd
-import os
-import sys
-import numpy as np
 import typing
 import functools
 from pandarallel import pandarallel as pandarallel_
 
 import dcarte
-from dcarte.utils import process_transition, localize_time
 from dcarte.local import LocalDataset
-from dcarte.config import get_config
 
 from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
-from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta, relative_func_delta
+from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta
 from dcarte_transform.transform.activity import compute_daily_location_freq, compute_entropy_rate
 
-import logging
-logging.warning('this is still under production')
 
 
-
+########## computing functions
 
 @dcarte.utils.timer('processing sleep FE data')
-def process_sleep(
+def compute_sleep(
                     df:pd.DataFrame, 
                     id_col:str,
                     datetime_col:str,
@@ -78,7 +71,7 @@ def process_sleep(
 
 
 @dcarte.utils.timer('processing relative_transition data')
-def process_relative_transitions(
+def compute_relative_transitions(
                                     df:pd.DataFrame, 
                                     funcs:typing.Union[typing.List[typing.Callable], typing.Callable],
                                     id_col:str,
@@ -111,6 +104,8 @@ def process_relative_transitions(
             filter_source = [filter_source]
         df = df[df[source_col].isin(filter_source)] 
 
+    df[source_col] = df[source_col].cat.remove_unused_categories()
+    df[sink_col] = df[sink_col].cat.remove_unused_categories()
 
     if not type(funcs) == list:
         funcs = [funcs]
@@ -133,7 +128,10 @@ def process_relative_transitions(
                                         label='left',
                                         )
 
-    # running calculations
+    # running calculations to calculate the func over each w_sample of an events
+    # and the w_distribution of the same events.
+    # if func is relative mean delta then this will calculate the change in mean 
+    # of an event from one day to the past week.
     daily_rel_transitions = (df
                             [[id_col, transition_col, source_col, sink_col, datetime_col, duration_col]]
                             .sort_values(datetime_col)
@@ -148,7 +146,9 @@ def process_relative_transitions(
     daily_rel_transitions = (daily_rel_transitions
                                 .reset_index(drop=False)
                                 .drop(['level_4',], axis=1)
-                                .rename({datetime_col: 'date'}, axis=1))
+                                .rename({datetime_col: 'date'}, axis=1)
+                                .dropna()
+                                )
 
     dtypes = {
                 id_col: 'category',
@@ -167,7 +167,7 @@ def process_relative_transitions(
 
 
 @dcarte.utils.timer('processing location frequency statistics')
-def process_location_time_stats(
+def compute_location_time_stats(
                                     df:pd.DataFrame, 
                                     location_name:str, 
                                     id_col:str,
@@ -221,7 +221,7 @@ def process_location_time_stats(
 
 
 @dcarte.utils.timer('processing entropy')
-def process_entropy_data(
+def compute_entropy_data(
                             df:pd.DataFrame, 
                             freq:str,
                             id_col:str,
@@ -251,54 +251,45 @@ def process_entropy_data(
 
 
 
-### still under production
-if __name__ == '__main__':
-
-    sleep = dcarte.load('sleep', 'base')
-    sleep_stats = process_sleep(
-                                sleep, 
-                                id_col='patient_id', 
-                                datetime_col='start_date',
-                                )
-
-    activity = dcarte.load('activity', 'raw')
-    bathroom_freq_nighttime = process_location_time_stats(
-                                                            activity, 
-                                                            location_name='bathroom1', 
-                                                            id_col='patient_id',
-                                                            location_col='location_name',
-                                                            datetime_col='start_date',
-                                                            time_range=['20:00', '08:00'],
-                                                            rolling_window=3,
-                                                            name='bathroom_nighttime',
-                                                            )
-
-    bathroom_freq_daytime = process_location_time_stats(
-                                                            activity, 
-                                                            location_name='bathroom1', 
-                                                            id_col='patient_id',
-                                                            location_col='location_name',
-                                                            datetime_col='start_date',
-                                                            time_range=['08:00', '20:00'],
-                                                            rolling_window=3,
-                                                            name='bathroom_daytime',
-                                                            )
-
-    entropy_daily = process_entropy_data(
-                                            activity, 
-                                            freq='day',
-                                            id_col='patient_id', 
-                                            datetime_col='start_date',
-                                            location_col='location_name'
-                                            )
 
 
-    relative_mean_delta = functools.partial(relative_func_delta, func=np.mean)
-    relative_std_delta = functools.partial(relative_func_delta, func=np.std)
+########## processing functions
 
-    transitions = dcarte.load('transitions', 'base')
-    bathroom_relative_transitions = process_relative_transitions(
-                                                        df=transitions,
+
+
+
+def process_sleep(self):
+    df = self.datasets['sleep']
+    sleep_stats = compute_sleep(
+                            df, 
+                            id_col='patient_id', 
+                            datetime_col='start_date',
+                            )
+    return sleep_stats
+
+
+
+
+
+def process_relative_transitions(self):
+
+    df = self.datasets['transitions']
+
+    def relative_mean_delta(array_distribution, array_sample):
+        # imports are required for parralisation on windows
+        from dcarte_transform.transform.utils import relative_func_delta
+        import numpy as np
+        return relative_func_delta(array_distribution, array_sample, func=np.mean)
+
+    def relative_std_delta(array_distribution, array_sample):
+        # imports are required for parralisation on windows
+        from dcarte_transform.transform.utils import relative_func_delta
+        import numpy as np
+        return relative_func_delta(array_distribution, array_sample, func=np.std)
+
+
+    bathroom_relative_transitions = compute_relative_transitions(
+                                                        df=df,
                                                         funcs=[
                                                                 relative_mean_delta,
                                                                 relative_std_delta
@@ -317,8 +308,189 @@ if __name__ == '__main__':
                                                         w_sample='1d',
                                                         )
 
+
     bathroom_relative_transitions = (bathroom_relative_transitions
                                             .groupby(by=['patient_id', 'sink', 'date'])
                                             .mean()
                                             .reset_index(drop=False)
+                                            .dropna()
+                                            .drop(['sink'], axis=1)
                                             )
+    
+    return bathroom_relative_transitions
+
+
+
+
+
+def process_bathroom_nighttime_stats(self):
+
+    df = self.datasets['activity']
+    bathroom_freq_nighttime = compute_location_time_stats(
+                                                            df, 
+                                                            location_name='bathroom1', 
+                                                            id_col='patient_id',
+                                                            location_col='location_name',
+                                                            datetime_col='start_date',
+                                                            time_range=['20:00', '08:00'],
+                                                            rolling_window=3,
+                                                            name='bathroom_nighttime',
+                                                            )
+    return bathroom_freq_nighttime
+
+
+
+
+
+def process_bathroom_daytime_stats(self):
+
+    df = self.datasets['activity']
+    bathroom_freq_daytime = compute_location_time_stats(
+                                                            df, 
+                                                            location_name='bathroom1', 
+                                                            id_col='patient_id',
+                                                            location_col='location_name',
+                                                            datetime_col='start_date',
+                                                            time_range=['08:00', '20:00'],
+                                                            rolling_window=3,
+                                                            name='bathroom_daytime',
+                                                            )
+    return bathroom_freq_daytime
+
+
+
+
+
+def process_entropy_daily(self):
+    
+    df = self.datasets['activity']
+    entropy_daily = compute_entropy_data(
+                                            df, 
+                                            freq='day',
+                                            id_col='patient_id', 
+                                            datetime_col='start_date',
+                                            location_col='location_name'
+                                            )
+    
+    return entropy_daily
+
+
+
+
+
+
+
+def process_fe_data(self):
+
+    sleep_fe = self.datasets['sleep_fe']
+    bathroom_nighttime_fe = self.datasets['bathroom_nighttime_fe']
+    bathroom_daytime_fe = self.datasets['bathroom_daytime_fe']
+    entropy_daily_fe = self.datasets['entropy_daily_fe']
+    bathroom_relative_transitions_fe = self.datasets['bathroom_relative_transitions_fe']
+
+    fe_data = pd.merge(left=sleep_fe, right=bathroom_nighttime_fe, on=['patient_id', 'date'], how='outer')
+    fe_data = pd.merge(left=fe_data, right=bathroom_daytime_fe, on=['patient_id', 'date'], how='outer')
+    fe_data = pd.merge(left=fe_data, right=entropy_daily_fe, on=['patient_id', 'date'], how='outer')
+    fe_data = pd.merge(left=fe_data, right=bathroom_relative_transitions_fe, on=['patient_id', 'date'], how='outer')
+
+    return fe_data
+
+
+
+
+
+
+
+
+########## creating datasets
+
+def create_feature_engineering_datasets():
+    domain = 'feature_engineering'
+    module = 'feature_engineering'
+    # since = '2022-02-10'
+    # until = '2022-02-20'
+    parent_datasets = {'sleep_fe': [['sleep', 'base']],
+                        'bathroom_relative_transitions_fe':[['transitions', 'base']],
+                        'bathroom_nighttime_fe': [['activity', 'raw']],
+                        'bathroom_daytime_fe': [['activity', 'raw']],
+                        'entropy_daily_fe': [['activity', 'raw']],
+                        'all_fe': [['sleep_fe', 'feature_engineering'],
+                                ['bathroom_relative_transitions_fe', 'feature_engineering'],
+                                ['bathroom_nighttime_fe', 'feature_engineering'],
+                                ['bathroom_daytime_fe', 'feature_engineering'],
+                                ['entropy_daily_fe', 'feature_engineering'],
+                                ]
+                        }
+
+    module_path = __file__
+
+    print('processing sleep FE')
+    LocalDataset(dataset_name='sleep_fe',
+                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['sleep_fe']},
+                 pipeline=['process_sleep'],
+                 domain=domain,
+                 module=module,
+                 module_path=module_path,
+                 reload=True,
+                 dependencies=parent_datasets['sleep_fe'])
+
+    print('processing night time bathroom FE')
+    LocalDataset(dataset_name='bathroom_nighttime_fe',
+                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['bathroom_nighttime_fe']},
+                 pipeline=['process_bathroom_nighttime_stats'],
+                 domain=domain,
+                 module=module,
+                 reload=True,
+                 module_path=module_path,
+                 dependencies=parent_datasets['bathroom_nighttime_fe'])
+
+    print('processing day time bathroom FE')
+    LocalDataset(dataset_name='bathroom_daytime_fe',
+                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['bathroom_daytime_fe']},
+                 pipeline=['process_bathroom_daytime_stats'],
+                 domain=domain,
+                 module=module,
+                 reload=True,
+                 module_path=module_path,
+                 dependencies=parent_datasets['bathroom_daytime_fe'])
+
+    print('processing daily entropy FE')
+    LocalDataset(dataset_name='entropy_daily_fe',
+                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['entropy_daily_fe']},
+                 pipeline=['process_entropy_daily'],
+                 domain=domain,
+                 module=module,
+                 reload=True,
+                 module_path=module_path,
+                 dependencies=parent_datasets['entropy_daily_fe'])
+
+
+    print('processing bathroom transition FE')
+    LocalDataset(dataset_name='bathroom_relative_transitions_fe',
+                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['bathroom_relative_transitions_fe']},
+                 pipeline=['process_relative_transitions'],
+                 domain=domain,
+                 module=module,
+                 reload=True,
+                 module_path=module_path,
+                 dependencies=parent_datasets['bathroom_relative_transitions_fe'])
+
+
+
+    print('processing all FE')
+    LocalDataset(dataset_name='all_fe',
+                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['all_fe']},
+                 pipeline=['process_fe_data'],
+                 domain=domain,
+                 module=module,
+                 module_path=module_path,
+                 reload=True,
+                 dependencies=parent_datasets['all_fe'])
+
+
+
+
+
+
+if __name__ == '__main__':
+    create_feature_engineering_datasets()
