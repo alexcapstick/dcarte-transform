@@ -47,9 +47,13 @@ def map_url_to_flag(urls:pd.Series) -> pd.Series:
 
 
 
+
 def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     '''
     This function will return the UTI labels.
+    If a single day for a paticular ID contains two different
+    labels (usually caused by using ```days_either_side```),
+    then both labels are removed.
     
     
     
@@ -136,13 +140,21 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
             x = pd.concat(x)
             x['date'] = new_dates
             return x
-        df_labels = df_labels.groupby(['patient_id', 
-                                        'date', 
-                                        'uti_event',
-                                        'outcome']).apply(dates_either_side_group_by
+        groupby_names = (['patient_id', 'date',  'uti_event', 'outcome'] if return_event
+                            else ['patient_id', 'date', 'outcome']) 
+        df_labels = df_labels.groupby(groupby_names).apply(dates_either_side_group_by
                                                 ).reset_index(drop=True)
+    else:
+        df_labels.reset_index(drop=True)
+    
+    # removing the rows with contradictory labels
+    df_labels = (df_labels
+                    # keeping one of the rows where the labels are the same
+                    .drop_duplicates(subset=['patient_id', 'date', 'outcome'], keep='first')
+                    # removing rows where the labels are the different
+                    .drop_duplicates(subset=['patient_id', 'date'], keep=False))
 
-    return df_labels.reset_index(drop=True)
+    return df_labels
 
 
 
@@ -197,18 +209,19 @@ def label(df:pd.DataFrame, datetime_col:str='start_date',
 
     df_labels = get_labels(days_either_side=days_either_side, return_event=return_event)
 
-    df['date'] = pd.to_datetime(df[datetime_col]).dt.date
+    df['__date__'] = pd.to_datetime(df[datetime_col]).dt.date
 
     # ensure the joining series have the same types
     logging.info('Making sure the pandas columns that are used for the join have the same type.')
     id_type = df['patient_id'].dtype
-    date_type = df['date'].dtype
+    date_type = df['__date__'].dtype
     df_labels['patient_id'] = df_labels['patient_id'].astype(id_type)
     df_labels['date'] = df_labels['date'].astype(date_type)
+    df_labels = df_labels.rename({'date': '__date__'}, axis=1)
 
     # performing merge to add labels to the data
     logging.info('Performing merge with data and data labels.')
-    df_labelled = pd.merge(df, df_labels, how='left', on=['patient_id', 'date']).drop('date', axis=1).copy()
+    df_labelled = pd.merge(df, df_labels, how='left', on=['patient_id', '__date__']).drop('__date__', axis=1).copy()
     df_labelled = df_labelled.rename(columns={'outcome': 'uti_label'})
 
     return df_labelled
