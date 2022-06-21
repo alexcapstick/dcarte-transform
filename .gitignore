@@ -3,3 +3,5 @@ dcarte_transform.egg-info/
 nohup/*
 **/.DS_Store
 recipe_template.py
+.venv/*
+.vscode/*

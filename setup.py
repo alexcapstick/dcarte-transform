@@ -10,7 +10,7 @@ setup(
     version='0.0.1',
     description="A package that can be used alongside DCARTE"\
                 "that adds extra functionality for engineered features and machine learning.",
-    author='Francesca Palermo Alex Capstick',
+    author='Alex Capstick and Francesca Palermo',
     url='',
     packages=[PACKAGE_NAME,],
     long_description=open('README.txt').read(),
@@ -25,5 +25,7 @@ setup(
                         "tensorboard>=2.9",
                         "pytorch-lightning>=1.6",
                         "pandarallel>=1.6",
+                        "aml @ git+https://github.com/alexcapstick/AML",
+                        "sku @ git+https://github.com/alexcapstick/SKPipelineUtils"
     ]
 )

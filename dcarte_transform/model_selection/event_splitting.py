@@ -23,7 +23,7 @@ class StratifiedEventKFold(StratifiedGroupKFold):
         ---------
         ```
         >>> splitter = StratifiedEventKFold()
-        >>> splits = splitter.split(X, y.astype(int), ids)
+        >>> splits = splitter.split(X, y.astype(int), events)
         >>> for train_idx, test_idx in splits:
                 X_train, y_train, ids_train = X[train_idx], y[train_idx], ids[train_idx]
                 X_test, y_test, ids_test = X[test_idx], y[test_idx], ids[test_idx]
