@@ -210,6 +210,8 @@ def label(df:pd.DataFrame, id_col:str='patient_id', datetime_col:str='start_date
     '''
     assert type(days_either_side) == int, 'days_either_side must be an integer.'
 
+    df = df.copy()
+
     df_labels = get_labels(days_either_side=days_either_side, return_event=return_event)
 
     df['__date__'] = pd.to_datetime(df[datetime_col]).dt.date
