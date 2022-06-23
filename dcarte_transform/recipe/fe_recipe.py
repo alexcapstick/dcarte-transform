@@ -423,6 +423,42 @@ def process_raw_and_fe_data(self):
 
 
 
+def process_core_raw_and_fe_data(self):
+    motion = self.datasets['motion']
+    fe_data = self.datasets['all_fe']
+
+    motion = motion[motion['location_name'].isin([
+                                                    'Bathroom', 
+                                                    'Bedroom', 
+                                                    'Hallway',
+                                                    'Kitchen', 
+                                                    'Lounge', 
+                                                    ])]
+
+    location_freq = (motion
+                    .groupby(by=[
+                                    'patient_id', 
+                                    pd.Grouper(key='start_date', freq='1d'), 
+                                    'location_name',
+                                    ])
+                    .size()
+                    .to_frame(name = 'freq')
+                    .unstack()
+                    .reset_index()
+                    .rename({'start_date':'date'}, axis=1)
+                    )
+    location_freq.columns = location_freq.columns.map('|'.join).str.strip('|')
+    location_freq['date'] = pd.to_datetime(location_freq['date']).dt.date
+
+    core_raw_fe_data = pd.merge(location_freq, fe_data, how='outer')
+
+    return core_raw_fe_data
+
+
+
+
+
+
 
 
 
@@ -448,6 +484,9 @@ def create_feature_engineering_datasets():
                         'all_raw_fe': [['motion', 'base'],
                                         ['all_fe', 'feature_engineering']
                                         ],
+                        'all_core_raw_fe': [['motion', 'base'],
+                                            ['all_fe', 'feature_engineering']
+                                            ],
                         }
 
     module_path = __file__
@@ -526,6 +565,16 @@ def create_feature_engineering_datasets():
                  reload=True,
                  dependencies=parent_datasets['all_raw_fe'])
 
+
+    print('processing all core raw and FE')
+    LocalDataset(dataset_name='all_core_raw_fe',
+                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['all_core_raw_fe']},
+                 pipeline=['process_core_raw_and_fe_data'],
+                 domain=domain,
+                 module=module,
+                 module_path=module_path,
+                 reload=True,
+                 dependencies=parent_datasets['all_core_raw_fe'])
 
 
 
