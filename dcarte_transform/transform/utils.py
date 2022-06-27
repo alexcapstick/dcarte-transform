@@ -266,10 +266,11 @@ def datetime_compare_rolling(df:pd.DataFrame,
     This function will roll over a dataframe, with step size
     equal to ```s```. This function compares the data in 
     ```w_sample``` and ```w_distribution``` by passing the 
-    data in them to the function given. For example:
+    data in them to the functions given in ```funcs```,
+    which should have structure:
     ```
     result = func(array_sample, array_distribution)
-    ```
+    ```.
     
 
     Example
@@ -404,7 +405,8 @@ def datetime_compare_rolling(df:pd.DataFrame,
     import pandas as pd
     from collections import OrderedDict
     import numpy as np
-
+    import functools
+    
     # ensuring the data frame is sorted
     df = df.copy()
     df[datetime_col] = pd.to_datetime(df[datetime_col])

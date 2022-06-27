@@ -275,17 +275,17 @@ def process_relative_transitions(self):
 
     df = self.datasets['transitions']
 
-    def relative_mean_delta(array_distribution, array_sample):
+    def relative_mean_delta(array_sample, array_distribution):
         # imports are required for parralisation on windows
         from dcarte_transform.transform.utils import relative_func_delta
         import numpy as np
-        return relative_func_delta(array_distribution, array_sample, func=np.mean)
+        return relative_func_delta(array_sample, array_distribution, func=np.mean)
 
-    def relative_std_delta(array_distribution, array_sample):
+    def relative_std_delta(array_sample, array_distribution):
         # imports are required for parralisation on windows
         from dcarte_transform.transform.utils import relative_func_delta
         import numpy as np
-        return relative_func_delta(array_distribution, array_sample, func=np.std)
+        return relative_func_delta(array_sample, array_distribution, func=np.std)
 
 
     bathroom_relative_transitions = compute_relative_transitions(
