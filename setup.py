@@ -12,7 +12,7 @@ setup(
                 "that adds extra functionality for engineered features and machine learning.",
     author='Alex Capstick and Francesca Palermo',
     url='',
-    packages=[PACKAGE_NAME,],
+    packages=find_packages(),
     long_description=open('README.txt').read(),
     install_requires=[
                         "numpy>=1.22",
