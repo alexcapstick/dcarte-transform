@@ -315,6 +315,13 @@ def process_relative_transitions(self):
                                             .reset_index(drop=False)
                                             .dropna()
                                             .drop(['sink'], axis=1)
+                                            .rename(
+                                                {
+                                                    'relative_mean_delta_relative_delta': 'bathroom_relative_transition_time_delta_mean',
+                                                    'relative_std_delta_relative_delta': 'bathroom_relative_transition_time_delta_std',
+                                                },
+                                                axis=1
+                                                )
                                             )
     
     return bathroom_relative_transitions
