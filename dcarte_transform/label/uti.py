@@ -154,7 +154,7 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
                     # removing rows where the labels are the different
                     .drop_duplicates(subset=['patient_id', 'date'], keep=False))
 
-    return df_labels
+    return df_labels.reset_index(drop=True)
 
 
 
@@ -234,6 +234,90 @@ def label(df:pd.DataFrame, id_col:str='patient_id', datetime_col:str='start_date
     df_labelled = df_labelled.rename(columns={'outcome': 'uti_label'})
 
     return df_labelled
+
+
+
+
+def label_number_previous(
+    df:pd.DataFrame, 
+    id_col:str='patient_id', 
+    datetime_col:str='start_date',
+    day_delay=1,
+    ):
+    '''
+    This function allows you to label the number of uti positives to date
+    for the corresponding ID and date.
+    
+
+    Arguments
+    ---------
+
+    - ```df```: ```pandas.DataFrame```:
+        The dataframe to append the number of previous uti positives to.
+    
+    - ```id_col```: ```str```, optional:
+        The column name that contains the ID information.
+        Defaults to ```'patient_id'```.
+
+    - ```datetime_col```: ```str```, optional:
+        The column name that contains the date time information.
+        Defaults to ```'start_date'```.
+
+    - ```day_delay```: ```str```, optional:
+        The number of days after a UTI is detected when the data reflects
+        that the ID has had another previous UTI. This is used to ensure
+        that the predictive model does not simply learn that to look for 
+        when this feature increases.
+        Defaults to ```1```.
+
+    
+    Returns
+    ---------
+    
+    - df_out: ```pandas.DataFrame```:
+        This is a dataframe containing the original data along with a new column, ```'uti_previous'```,
+        which contains the number of previous UTIs to date for that ID.
+
+    
+    
+
+    '''
+
+    cumulative_pos_labels = (get_labels()
+        .query('outcome == True')
+        .groupby(['patient_id', 'date'])
+        .sum()
+        .groupby(level=0)
+        .cumsum()
+        .reset_index()
+        .sort_values(by='date')
+        .rename({'outcome': 'previous_uti',
+            'date': '__date__'}, axis=1)
+        )
+    
+    cumulative_pos_labels['__date__'] = pd.to_datetime(
+        cumulative_pos_labels['__date__']
+        )
+    
+    # this ensures that the number of previous UTIs increases the day_delay
+    # after the UTI
+    df['__date__'] = pd.to_datetime(df[datetime_col]) - pd.Timedelta(f'{day_delay}day')
+    
+    df = pd.merge_asof(
+        df.sort_values('__date__'),
+        cumulative_pos_labels,
+        on=['__date__'],
+        direction='backward',
+        left_by=id_col,
+        right_by='patient_id',
+        )
+    
+    df = df.drop('__date__', axis=1)
+    df['previous_uti'] = df['previous_uti'].fillna(0)
+
+    return df
+
+
 
 
 

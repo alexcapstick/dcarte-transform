@@ -10,7 +10,7 @@ from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
 from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta
 from dcarte_transform.transform.activity import compute_daily_location_freq, compute_entropy_rate
 
-
+from dcarte_transform.label.uti import label_number_previous
 
 ########## computing functions
 
@@ -400,6 +400,13 @@ def process_fe_data(self):
     fe_data = pd.merge(left=fe_data, right=entropy_daily_fe, on=['patient_id', 'date'], how='outer')
     fe_data = pd.merge(left=fe_data, right=bathroom_relative_transitions_fe, on=['patient_id', 'date'], how='outer')
 
+    fe_data = label_number_previous(
+                                                fe_data, 
+                                                id_col='patient_id',
+                                                datetime_col='date',
+                                                day_delay=7,
+                                                )
+
     return fe_data
 
 
@@ -424,6 +431,15 @@ def process_raw_and_fe_data(self):
     location_freq['date'] = pd.to_datetime(location_freq['date']).dt.date
 
     raw_fe_data = pd.merge(location_freq, fe_data, how='outer')
+    raw_fe_data = raw_fe_data.drop('previous_uti', axis=1)
+
+    raw_fe_data = label_number_previous(
+                                                raw_fe_data, 
+                                                id_col='patient_id',
+                                                datetime_col='date',
+                                                day_delay=7,
+                                                )
+
 
     return raw_fe_data
 
@@ -458,6 +474,14 @@ def process_core_raw_and_fe_data(self):
     location_freq['date'] = pd.to_datetime(location_freq['date']).dt.date
 
     core_raw_fe_data = pd.merge(location_freq, fe_data, how='outer')
+    
+    core_raw_fe_data = core_raw_fe_data.drop('previous_uti', axis=1)
+    core_raw_fe_data = label_number_previous(
+                                                core_raw_fe_data, 
+                                                id_col='patient_id',
+                                                datetime_col='date',
+                                                day_delay=7,
+                                                )
 
     return core_raw_fe_data
 
