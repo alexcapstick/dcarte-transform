@@ -9,6 +9,7 @@ from dcarte.local import LocalDataset
 from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
 from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta
 from dcarte_transform.transform.activity import compute_daily_location_freq, compute_entropy_rate
+from dcarte_transform.recipe.tihm_and_minder_recipe import create_tihm_and_minder_datasets
 
 from dcarte_transform.label.uti import label_number_previous
 
@@ -180,7 +181,7 @@ def compute_location_time_stats(
     df = df.copy()
 
     if name is None:
-        name = f'{location_name}'
+        name = f'{location_name}'.lower()
 
     # computing the location frequency for the given location
     df = compute_daily_location_freq(df, 
@@ -332,10 +333,10 @@ def process_relative_transitions(self):
 
 def process_bathroom_nighttime_stats(self):
 
-    df = self.datasets['activity']
+    df = self.datasets['motion']
     bathroom_freq_nighttime = compute_location_time_stats(
                                                             df, 
-                                                            location_name='bathroom1', 
+                                                            location_name='Bathroom', 
                                                             id_col='patient_id',
                                                             location_col='location_name',
                                                             datetime_col='start_date',
@@ -351,10 +352,10 @@ def process_bathroom_nighttime_stats(self):
 
 def process_bathroom_daytime_stats(self):
 
-    df = self.datasets['activity']
+    df = self.datasets['motion']
     bathroom_freq_daytime = compute_location_time_stats(
                                                             df, 
-                                                            location_name='bathroom1', 
+                                                            location_name='Bathroom', 
                                                             id_col='patient_id',
                                                             location_col='location_name',
                                                             datetime_col='start_date',
@@ -370,7 +371,7 @@ def process_bathroom_daytime_stats(self):
 
 def process_entropy_daily(self):
     
-    df = self.datasets['activity']
+    df = self.datasets['motion']
     entropy_daily = compute_entropy_data(
                                             df, 
                                             freq='day',
@@ -501,21 +502,25 @@ def create_feature_engineering_datasets():
     module = 'feature_engineering'
     # since = '2022-02-10'
     # until = '2022-02-20'
+
+    if not 'TIHM_AND_MINDER' in dcarte.domains().columns:
+        create_tihm_and_minder_datasets()
+
     parent_datasets = {'sleep_fe': [['sleep', 'base']],
-                        'bathroom_relative_transitions_fe':[['transitions', 'base']],
-                        'bathroom_nighttime_fe': [['activity', 'raw']],
-                        'bathroom_daytime_fe': [['activity', 'raw']],
-                        'entropy_daily_fe': [['activity', 'raw']],
+                        'bathroom_relative_transitions_fe':[['transitions', 'tihm_and_minder']],
+                        'bathroom_nighttime_fe': [['motion', 'tihm_and_minder']],
+                        'bathroom_daytime_fe': [['motion', 'tihm_and_minder']],
+                        'entropy_daily_fe': [['motion', 'tihm_and_minder']],
                         'all_fe': [['sleep_fe', 'feature_engineering'],
                                 ['bathroom_relative_transitions_fe', 'feature_engineering'],
                                 ['bathroom_nighttime_fe', 'feature_engineering'],
                                 ['bathroom_daytime_fe', 'feature_engineering'],
                                 ['entropy_daily_fe', 'feature_engineering'],
                                 ],
-                        'all_raw_fe': [['motion', 'base'],
+                        'all_raw_fe': [['motion', 'tihm_and_minder'],
                                         ['all_fe', 'feature_engineering']
                                         ],
-                        'all_core_raw_fe': [['motion', 'base'],
+                        'all_core_raw_fe': [['motion', 'tihm_and_minder'],
                                             ['all_fe', 'feature_engineering']
                                             ],
                         }
