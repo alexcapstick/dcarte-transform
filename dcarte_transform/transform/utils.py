@@ -148,7 +148,10 @@ def datetime_rolling(
                     w:str='7d', 
                     datetime_col:str='start_date',
                     value_col:str='value', 
-                    label:str='left'):
+                    label:str='left',
+                    dataframe_apply:bool=False,
+                    pad:bool=False,
+                    ):
     '''
     This function will roll over a dataframe, with step size
     equal to ```s``` and with a window equal to ```w```, applying
@@ -193,6 +196,22 @@ def datetime_rolling(
         ```['left', 'right']```.
         Defaults to ```'left'```.
     
+    - ```dataframe_apply```: ```bool```, optional:
+        Whether to pass the functions the section of the
+        dataframe for each window, or the values from 
+        `value_col`.
+        Defaults to ```False```.
+    
+    - ```pad```: ```bool```, optional:
+        Whether to pad the dates either side of the rolling 
+        operation. If `True`, the first window will be 
+        data from before the earliest date, only containing the
+        earliest date and the last window will contain 
+        dates from after the latest date, and contain only the 
+        data from the latest date. 
+        Defaults to ```False```.
+        
+    
     
     Returns
     --------
@@ -214,6 +233,15 @@ def datetime_rolling(
     
     df = df.copy()
     df[datetime_col] = pd.to_datetime(df[datetime_col])
+    if pad:
+        min_date = df[datetime_col].min()
+        max_date = df[datetime_col].max()
+        new_row = {datetime_col: [
+            min_date-pd.Timedelta(w)+pd.Timedelta(s),
+            max_date+pd.Timedelta(w)-pd.Timedelta(s),
+            ]}
+        df = pd.concat([df, pd.DataFrame(new_row)], axis=0)
+
     df = df.sort_values(datetime_col)
 
     min_date = df[datetime_col].min()
@@ -226,7 +254,10 @@ def datetime_rolling(
     
     # iterating over the windows
     while end_date<max_date:
-        values = df[df[datetime_col].between(start_date, end_date, inclusive='left')][value_col].values
+        if dataframe_apply:
+            values = df[df[datetime_col].between(start_date, end_date, inclusive='left')]
+        else:
+            values = df[df[datetime_col].between(start_date, end_date, inclusive='left')][value_col].values
         result_dict[datetime_col].append(end_date if label == 'right' else start_date)
         # iterating over the functions
         for func in funcs:
