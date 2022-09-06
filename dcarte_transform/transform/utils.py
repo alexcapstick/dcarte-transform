@@ -234,8 +234,8 @@ def datetime_rolling(
     df = df.copy()
     df[datetime_col] = pd.to_datetime(df[datetime_col])
     if pad:
-        min_date = df[datetime_col].min()
-        max_date = df[datetime_col].max()
+        min_date = pd.to_datetime(df[datetime_col].min().date())
+        max_date = pd.to_datetime(df[datetime_col].max().date())
         new_row = {datetime_col: [
             min_date-pd.Timedelta(w)+pd.Timedelta(s),
             max_date+pd.Timedelta(w)-pd.Timedelta(s),
