@@ -356,7 +356,7 @@ class Labeller:
             Unlabelled dataframe, must contain columns `[id_col, datetime_col]`, where `id_col` is the
             ids of participants and `datetime_col` is the time of the sensors.
         
-        - `subset`: ``:
+        - `subset`: `typing.Union[None, str, typing.List[str]]`:
             The subset of label types to be used in the labelling.
             If `None`, then all label types will be used. These can 
             be accessed using the attribute `.label_types`.
@@ -426,7 +426,7 @@ class Labeller:
         - `df`: `pandas.DataFrame`:
             The dataframe to append the number of previous positives to.
         
-        - `subset`: ``:
+        - `subset`: `typing.Union[None, str, typing.List[str]]`:
             The subset of label types to be used in the labelling.
             If `None`, then all label types will be used. These can 
             be accessed using the attribute `.label_types`.
@@ -494,7 +494,7 @@ class Labeller:
         Arguments
         ---------
         
-        - `subset`: ``:
+        - `subset`: `typing.Union[None, str, typing.List[str]]`:
             The subset of label types to be used in the labelling.
             If `None`, then all label types will be used. These can 
             be accessed using the attribute `.label_types`.

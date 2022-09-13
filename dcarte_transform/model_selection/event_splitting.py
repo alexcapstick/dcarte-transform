@@ -34,14 +34,14 @@ class StratifiedEventKFold(StratifiedGroupKFold):
         Arguments
         ---------
 
-        - ```n_splits```: ```int```, optional:
+        - `n_splits`: `int`, optional:
             This is the number of splits to produce.
 
-        - ```shuffle```: ```bool```, optional:
+        - `shuffle`: `bool`, optional:
             dictates whether the data should be shuffled before the splits
             are made.
         
-        - ```random_state```: ```None``` or ```int```, optional:
+        - `random_state`: `None` or `int`, optional:
             This dictates the random seed that is used in the random
             operations for this class.
         
@@ -63,20 +63,20 @@ class StratifiedEventKFold(StratifiedGroupKFold):
         Arguments
         ---------
 
-        - ```X```: ```array-like```, optional:
-            Training data with shape ```(n_samples,n_features)```, 
-            where ```n_samples``` is the number 
-            of samples and ```n_features``` is the number of features.
+        - `X`: `array-like`, optional:
+            Training data with shape `(n_samples,n_features)`, 
+            where `n_samples` is the number 
+            of samples and `n_features` is the number of features.
 
-        - ```y```: ```array-like```, optional:
-            Label data with shape ```(n_samples)```, 
-            where ```n_samples``` is the number of samples. These are 
+        - `y`: `array-like`, optional:
+            Label data with shape `(n_samples)`, 
+            where `n_samples` is the number of samples. These are 
             the labels that are used to stratify the data. This 
             must be an array of integers.
 
-        - ```event```: ```array-like```, optional:
-            Event data with shape ```(n_samples)```, 
-            where ```n_samples``` is the number of samples. These are the
+        - `event`: `array-like`, optional:
+            Event data with shape `(n_samples)`, 
+            where `n_samples` is the number of samples. These are the
             event ids that are used to group the data into either the training
             or testing set.
 
@@ -84,7 +84,7 @@ class StratifiedEventKFold(StratifiedGroupKFold):
         Returns
         ----------
 
-        - ```splits```: ```generator```:
+        - `splits`: `generator`:
             This is the generator containing the indices of the splits.
 
         
@@ -105,9 +105,9 @@ def train_test_event_split(*arrays,
                             ):
     '''
     This function returns the train and test data given the
-    split and the data. A single ```event``` will not be in
+    split and the data. A single `event` will not be in
     both the training and testing set. You should use either
-    ```test_size``` or ```train_size``` but not both.
+    `test_size` or `train_size` but not both.
 
 
 
@@ -124,39 +124,39 @@ def train_test_event_split(*arrays,
     Arguments
     ---------
 
-    - ```arrays```: ```array-like```, optional:
+    - `arrays`: `array-like`, optional:
         The data to split into training and testing sets. The labels and
-        the events should be passed to ```y``` and ```event``` respectively.
+        the events should be passed to `y` and `event` respectively.
 
-    - ```y```: ```array-like```, optional:
-        Label data with shape ```(n_samples)```, 
-        where ```n_samples``` is the number of samples. These are the
+    - `y`: `array-like`, optional:
+        Label data with shape `(n_samples)`, 
+        where `n_samples` is the number of samples. These are the
         labels that are used to group the data into either the training
         or testing set.
 
-    - ```event```: ```array-like```, optional:
-        Event data with shape ```(n_samples)```, 
-        where ```n_samples``` is the number of samples. These are the
+    - `event`: `array-like`, optional:
+        Event data with shape `(n_samples)`, 
+        where `n_samples` is the number of samples. These are the
         event ids that are used to group the data into either the training
         or testing set.
     
-    - ```test_size```: ```float```, optional:
+    - `test_size`: `float`, optional:
         This dictates the size of the outputted test set. This 
-        should be used if ```train_size=None```. If no ```test_size```
-        or ```train_size``` are given, then ```test_size``` will default
-        to ```0.25```
-        Defaults to ```None```.
+        should be used if `train_size=None`. If no `test_size`
+        or `train_size` are given, then `test_size` will default
+        to `0.25`
+        Defaults to `None`.
 
-    - ```train_size```: ```float```, optional:
+    - `train_size`: `float`, optional:
         This dictates the size of the outputted train set. This 
-        should be used if ```test_size=None```.
-        Defaults to ```None```.
+        should be used if `test_size=None`.
+        Defaults to `None`.
 
-    - ```shuffle```: ```bool```, optional:
+    - `shuffle`: `bool`, optional:
         dictates whether the data should be shuffled before the split
         is made.
     
-    - ```random_state```: ```None``` or ```int```, optional:
+    - `random_state`: `None` or `int`, optional:
         This dictates the random seed that is used in the random
         operations for this function.
 
@@ -165,7 +165,7 @@ def train_test_event_split(*arrays,
     Returns
     ----------
 
-    - ```split arrays```: ```list```:
+    - `split arrays`: `list`:
         This is a list of the input data, split into the training and
         testing sets. See the Example for an understanding of the 
         order of the outputted arrays.

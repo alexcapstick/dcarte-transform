@@ -18,28 +18,28 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     '''
         This function will return the Agitation labels.
         If a single day for a paticular ID contains two different
-        labels (usually caused by using ```days_either_side```),
+        labels (usually caused by using `days_either_side`),
         then both labels are removed.
 
         Arguments
         ---------
 
-        - ```days_either_side```: ```int```, optional:
+        - `days_either_side`: `int`, optional:
             The number of days either side of a label that will be given the same label.
             If these days overlap, if the label is the same then the first will be kept.
             If they are different, then neither will be kept.
-            Defaults to ```0```.
+            Defaults to `0`.
 
-        - ```return_event```: ```bool```, optional:
+        - `return_event`: `bool`, optional:
             This dictates whether another column should be added, with a unique id given to each of the separate
             UTI events. This allows the user to group the outputted data based on events.
-            Defaults to ```False```.
+            Defaults to `False`.
 
 
         Returns
         --------
 
-        - ```out```: ```pd.DataFrame``` :
+        - `out`: `pd.DataFrame` :
             A dataframe containing the Agitation labels, with the corresponding patient_id and
             date.
 
