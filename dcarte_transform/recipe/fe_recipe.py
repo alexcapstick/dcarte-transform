@@ -13,6 +13,36 @@ from dcarte_transform.recipe.tihm_and_minder_recipe import create_tihm_and_minde
 
 from dcarte_transform.label.uti import label_number_previous
 
+
+
+######### More readable feature names
+
+feature_nice_names = {
+    'bathroom_daytime_freq': 'Bathroom Daytime Frequency', 
+    'bathroom_daytime_freq_ma': 'Bathroom Moving Average Daytime Frequency',
+    'bathroom_daytime_freq_ma_delta': 'Change in Bathroom Moving Average Daytime Frequency', 
+    'bathroom_nighttime_freq': 'Bathroom Nighttime Frequency',
+    'bathroom_nighttime_freq_ma': 'Bathroom Moving Average Nighttime Frequency', 
+    'bathroom_nighttime_freq_ma_delta': 'Change in Bathroom Moving Average Nighttime Frequency',
+    'bathroom_relative_transition_time_delta_mean': 'Mean of the Relative Transition Time to the Bathroom',
+    'bathroom_relative_transition_time_delta_std': 'Standard Deviation of the Relative Transition Time to the Bathroom', 
+    'daily_entropy': 'Daily Entropy of Movement',
+    'freq|Bathroom': 'Frequency of Visits to the Bathroom', 
+    'freq|Bedroom': 'Frequency of Visits to the Bedroom', 
+    'freq|Hallway': 'Frequency of Visits to the Hallway',  
+    'freq|Kitchen': 'Frequency of Visits to the Kitchen', 
+    'freq|Lounge': 'Frequency of Visits to the Lounge', 
+    'heart_rate|mean': 'Mean of the Nighttime Heart Rate', 
+    'heart_rate|std': 'Standard Deviation of the Nighttime Heart Rate', 
+    'respiratory_rate|mean': 'Mean of the Nighttime Respiratory Rate', 
+    'respiratory_rate|std': 'Standard Deviation of the Nighttime Respiratory Rate', 
+    'state|count_AWAKE': 'Number of Nighttime Awakenings',
+    'previous_uti': 'Number of Previous UTIs',
+}
+
+
+
+
 ########## computing functions
 
 @dcarte.utils.timer('processing sleep FE data')
