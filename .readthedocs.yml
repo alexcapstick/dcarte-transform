@@ -8,10 +8,6 @@ build:
 sphinx:
   configuration: docs/source/conf.py
 
-submodules:
-  include: all
-  recursive: True
-
 python:
   install:
     - requirements: requirements.txt
