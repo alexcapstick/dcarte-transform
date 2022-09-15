@@ -2,11 +2,6 @@
 
 # -- Project information
 
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath("../.."))
-
 import dcarte_transform
 
 version = dcarte_transform.__version__
@@ -19,6 +14,7 @@ release = '.'.join(version.split('.')[:2])
 # -- General configuration
 
 extensions = [
+    'readthedocs_ext.readthedocs',
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
