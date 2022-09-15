@@ -1,5 +1,5 @@
 Welcome to dcarte_transform's documentation!
-===================================
+==============================================
 
 **dcarte_transform**  is a Python library that adds extra functionality 
 to the dcarte package. It includes functions for labelling, feature engineering,
@@ -13,7 +13,7 @@ how to :ref:`installation` the project.
    This project is under active development.
 
 Contents
---------
+---------
 
 .. toctree::
 
