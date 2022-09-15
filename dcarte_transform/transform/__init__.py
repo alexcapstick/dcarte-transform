@@ -1,3 +1,7 @@
+'''
+Data transform and calculation functions.
+'''
+
 from .activity import compute_entropy_rate, compute_daily_location_freq
 from .utils import (
     datetime_compare_rolling, 

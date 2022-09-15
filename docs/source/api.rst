@@ -1,5 +1,7 @@
 API
-===
+====
+
+The following is the documentation for the dcarte-transform module.
 
 .. autosummary::
    :toctree: _autosummary
