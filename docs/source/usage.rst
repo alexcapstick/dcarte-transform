@@ -1,10 +1,10 @@
 Usage
-=====
+======
 
 .. _installation:
 
 Installation
-------------
+-------------
 
 To use dcarte-transform, first install it using pip:
 
