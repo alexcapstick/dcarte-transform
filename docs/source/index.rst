@@ -13,19 +13,15 @@ how to :ref:`installation` the project.
    This project is under active development.
 
 
-For the documentation to all functions, please see :doc:`all_functionality`.
+For the documentation to all functions, please see :doc:`main_functionality`.
 
 Contents
 ---------
 
 .. toctree::
+   :Navigation: Theme Documentation
+   :unhidden:
 
    usage
+   main_functionality
    api
-
-.. toctree::
-    :maxdepth: 1:
-    :caption: All Functionality
-    :hidden:
-
-    all_functionality

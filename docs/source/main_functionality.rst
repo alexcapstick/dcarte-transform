@@ -1,7 +1,6 @@
-All Functionality
+Main Functionality
 ====================
 
-.. _all_functionality:
 
 Here is the documentation for all that is available within this package:
 
@@ -17,13 +16,6 @@ Module contents
 Submodules
 ----------
 
-dcarte_transform.label module
---------------------
-
-.. automodule:: dcarte_transform.label
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 dcarte_transform.model_selection module
 ---------------------
