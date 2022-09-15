@@ -1,3 +1,7 @@
+'''
+Tihm and Minder recipe.
+'''
+
 import pandas as pd
 
 import dcarte

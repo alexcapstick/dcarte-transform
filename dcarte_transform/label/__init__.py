@@ -4,6 +4,6 @@ For labelling the data.
 
 from .labeller import Labeller
 
-__all__ =[
+__all__ = [
     'Labeller',
     ]

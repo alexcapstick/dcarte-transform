@@ -1,3 +1,7 @@
+'''
+Splitting data ID functions.
+'''
+
 import numpy as np
 from sklearn.model_selection import StratifiedGroupKFold
 import typing

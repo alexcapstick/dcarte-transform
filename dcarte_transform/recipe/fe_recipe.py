@@ -1,3 +1,7 @@
+'''
+Feature engineering recipe.
+'''
+
 import pandas as pd
 import typing
 import functools

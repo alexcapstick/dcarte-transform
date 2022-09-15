@@ -1,3 +1,7 @@
+'''
+Labelling all data. This provides the most useful functionality.
+'''
+
 import typing
 import pandas as pd
 

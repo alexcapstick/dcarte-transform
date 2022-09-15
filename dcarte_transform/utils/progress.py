@@ -1,3 +1,7 @@
+'''
+Progress functions and classes.
+'''
+
 import typing
 import tqdm
 import pandarallel
