@@ -4,8 +4,14 @@
 
 import os
 import sys
+from unittest import mock
 
 sys.path.insert(0, os.path.abspath("../.."))
+
+# Mock dcarte because it fails to build in readthedocs
+MOCK_MODULES = ["dcarte",]
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
 
 import dcarte_transform
 
@@ -43,5 +49,3 @@ html_theme = 'sphinx_rtd_theme'
 epub_show_urls = 'footnote'
 
 master_doc = 'index'
-
-autodoc_mock_imports = ["dcarte",]
