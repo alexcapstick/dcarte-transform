@@ -13,6 +13,8 @@ how to :ref:`installation` the project.
    This project is under active development.
 
 
+For the documentation to all functions, please see :ref:`all_functionality`
+
 Contents
 ---------
 
