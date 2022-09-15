@@ -13,8 +13,6 @@ how to :ref:`installation` the project.
    This project is under active development.
 
 
-For the documentation to all functions, please see :doc:`main_functionality`.
-
 .. Hidden TOCs
 
 .. toctree::
@@ -28,5 +26,8 @@ For the documentation to all functions, please see :doc:`main_functionality`.
    :caption: Documentation
    :hidden:
 
-   main_functionality
-   api
+   label
+   model_selection
+   recipe
+   transform
+   utils
