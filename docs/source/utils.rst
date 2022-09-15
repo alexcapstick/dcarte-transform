@@ -14,16 +14,3 @@ dcarte_transform.utils module
 
 
 
-
-
-
-
-.. toctree::
-   :caption: Documentation
-   :hidden:
-
-   label
-   model_selection
-   recipe
-   transform
-   utils

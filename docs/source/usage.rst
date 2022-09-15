@@ -18,16 +18,3 @@ For example:
 
 >>> import dcarte_transform
 
-
-
-
-
-.. toctree::
-   :caption: Documentation
-   :hidden:
-
-   label
-   model_selection
-   recipe
-   transform
-   utils

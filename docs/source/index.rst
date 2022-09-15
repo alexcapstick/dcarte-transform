@@ -26,6 +26,7 @@ how to :ref:`installation` the project.
    :caption: Documentation
    :hidden:
 
+   api
    label
    model_selection
    recipe

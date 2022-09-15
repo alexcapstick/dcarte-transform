@@ -14,16 +14,3 @@ dcarte_transform.transform module
    :show-inheritance:
 
 
-
-
-
-
-.. toctree::
-   :caption: Documentation
-   :hidden:
-
-   label
-   model_selection
-   recipe
-   transform
-   utils
