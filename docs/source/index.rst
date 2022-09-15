@@ -21,9 +21,10 @@ how to :ref:`install` the project.
 
    usage
    
+Documentation Links: 
+-----------------------
 
 .. toctree::
    :caption: Main Documentation
-   :hidden:
 
    documentation
