@@ -20,7 +20,7 @@ Contents
 
 .. toctree::
    :Navigation: Theme Documentation
-   :unhidden:
+   :hidden:
 
    usage
    main_functionality
