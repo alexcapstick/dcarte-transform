@@ -4,10 +4,10 @@ Documentation
 
 The full documentation is available here. Use the side bar to select the sub-module that is most applicable.
 
-All of these functions can be loaded in the following way:
+All of these functions can be loaded in the following way::
 
->>> import dcarte_transform as dct
->>> dct.Labeller()
+	>>> import dcarte_transform as dct
+	>>> dct.Labeller()
 
 
 
@@ -16,8 +16,6 @@ Label
 
 Here is the documentation for the labelling functionality.
 
-dcarte_transform.label module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: dcarte_transform.label
    :members:
@@ -35,11 +33,6 @@ Model Selection
 -----------------------
 
 Here is the documentation for the model selection functionality.
-
-
-
-dcarte_transform.model_selection module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 .. automodule:: dcarte_transform.model_selection
@@ -60,11 +53,6 @@ Recipe
 Here is the documentation for the recipe functionality.
 
 
-
-
-dcarte_transform.recipe module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 .. automodule:: dcarte_transform.recipe
    :members:
    :undoc-members:
@@ -82,9 +70,6 @@ Here is the documentation for the data transform functionality.
 
 
 
-dcarte_transform.transform module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 .. automodule:: dcarte_transform.transform
    :members:
    :undoc-members:
@@ -101,8 +86,6 @@ Utils
 Here is the documentation for the utils functionality.
 
 
-dcarte_transform.utils module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: dcarte_transform.utils
    :members:
