@@ -53,3 +53,19 @@ html_theme = 'sphinx_rtd_theme'
 epub_show_urls = 'footnote'
 
 master_doc = 'index'
+
+
+
+
+import re
+
+def remove_default_value(app, what, name, obj, options, signature, return_annotation):
+    if signature:
+        search = re.findall(r"(\w*)=", signature)
+        if search:
+            signature = "({})".format(", ".join([s for s in search]))
+
+    return (signature, return_annotation)
+
+def setup(app):
+    app.connect("autodoc-process-signature", remove_default_value)
