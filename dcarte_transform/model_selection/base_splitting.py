@@ -25,12 +25,12 @@ def train_test_group_split(*arrays,
 
         Example
         ---------
-        ```
-        >>> (X_train, X_test, 
-            y_train, y_test, 
-            ids_train, ids_test) = train_test_group_split(X, y=y, group=group, test_size=0.33)
-
-        ```
+        
+        .. code-block:: console
+        
+            >>> (X_train, X_test, 
+                y_train, y_test, 
+                ids_train, ids_test) = train_test_group_split(X, y=y, group=group, test_size=0.33)
 
 
         Arguments

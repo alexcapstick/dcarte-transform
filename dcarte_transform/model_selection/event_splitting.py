@@ -25,14 +25,16 @@ class StratifiedEventKFold(StratifiedGroupKFold):
 
         Example
         ---------
-        ```
-        >>> splitter = StratifiedEventKFold()
-        >>> splits = splitter.split(X, y.astype(int), events)
-        >>> for train_idx, test_idx in splits:
-                X_train, y_train, ids_train = X[train_idx], y[train_idx], ids[train_idx]
-                X_test, y_test, ids_test = X[test_idx], y[test_idx], ids[test_idx]
 
-        ```
+        .. code-block:: console
+        
+            >>> splitter = StratifiedEventKFold()
+            >>> splits = splitter.split(X, y.astype(int), events)
+            >>> for train_idx, test_idx in splits:
+                    X_train, y_train, ids_train = X[train_idx], y[train_idx], ids[train_idx]
+                    X_test, y_test, ids_test = X[test_idx], y[test_idx], ids[test_idx]
+
+
 
         
         Arguments
@@ -117,12 +119,14 @@ def train_test_event_split(*arrays,
 
     Example
     ---------
-    ```
-    >>> (X_train, X_test, 
-        y_train, y_test, 
-        ids_train, ids_test) = train_test_event_split(X, y=y, event=event, test_size=0.33)
 
-    ```
+    .. code-block:: console
+    
+        >>> (X_train, X_test, 
+            y_train, y_test, 
+            ids_train, ids_test) = train_test_event_split(X, y=y, event=event, test_size=0.33)
+
+
 
 
     Arguments

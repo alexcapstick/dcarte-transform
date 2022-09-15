@@ -155,11 +155,12 @@ def compute_entropy_rate(df: pd.DataFrame,
     Note that the daily entropy will always be returned first in the list if two 
     frequencies are given.
     
-    ```
-    >>> data = dcarte.load('activity','raw')
-    >>> daily_entropy, weekly_entropy = compute_entropy_rate(data, freq=['day','week'])
-    >>> daily_entropy, weekly_entropy = compute_entropy_rate(data, freq=['week','day'])
-    ```
+    .. code-block:: console
+        
+        >>> data = dcarte.load('activity','raw')
+        >>> daily_entropy, weekly_entropy = compute_entropy_rate(data, freq=['day','week'])
+        >>> daily_entropy, weekly_entropy = compute_entropy_rate(data, freq=['week','day'])
+
 
 
     
@@ -288,10 +289,11 @@ def compute_daily_location_freq(df:pd.DataFrame,
     the times of 00:00 to 08:00 and 20:00 to 00:00 each day, you could
     run the following:
     
-    ```
-    >>> compute_daily_location_freq(data, 'bathroom1', time_range=['20:00','08:00'])
+    .. code-block:: console
+    
+        >>> compute_daily_location_freq(data, 'bathroom1', time_range=['20:00','08:00'])
 
-    ```
+
 
 
     

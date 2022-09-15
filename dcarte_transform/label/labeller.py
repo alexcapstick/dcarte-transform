@@ -29,17 +29,19 @@ class Labeller:
 
         Examples
         ---------
-        ```
-        >>> l = Labeller()
-        >>> l.label_types
-        ['uti', 'agitation']
-        >>> all_labels = l.get_labels(
-            days_either_side=2,
-            return_event=True,
-            )
-        >>> data_labelled = l.label_df(data, subset='uti') # this is the same as below
-        >>> data_labelled = l.uti_label_df(data) # this is the same as above
-        ```
+
+        .. code-block:: console
+
+            >>> l = Labeller()
+            >>> l.label_types
+            ['uti', 'agitation']
+            >>> all_labels = l.get_labels(
+                days_either_side=2,
+                return_event=True,
+                )
+            >>> data_labelled = l.label_df(data, subset='uti') # this is the same as below
+            >>> data_labelled = l.uti_label_df(data) # this is the same as above
+        
 
         '''
         self.label_types = ['uti', 'agitation']

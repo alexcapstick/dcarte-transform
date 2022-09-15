@@ -106,9 +106,11 @@ def compute_delta(array:np.array, pad:bool=False,):
     This function allows the user to calculate the proportional change
     between each element in `x` and its previous element. This is done
     using the formula:
-    ```
-    (x_{i} - x_{i-1})/x_{i-1}
-    ```
+
+    .. code-block:: console
+    
+        >>> (x_{i} - x_{i-1})/x_{i-1}
+
     
     Arguments
     ---------
@@ -303,9 +305,11 @@ def datetime_compare_rolling(df:pd.DataFrame,
     `w_sample` and `w_distribution` by passing the 
     data in them to the functions given in `funcs`,
     which should have structure:
-    ```
-    result = func(array_sample, array_distribution)
-    ```.
+
+    .. code-block:: console
+
+        >>> result = func(array_sample, array_distribution)
+
     
 
     Example
@@ -317,56 +321,57 @@ def datetime_compare_rolling(df:pd.DataFrame,
     by ID and transition. The calculations
     would also be computed in parallel.
 
-    ```
-    from functools import partial
-    import dcarte
-    from pandarallel import pandarallel as pandarallel_
-    from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
+    .. code-block:: console
+    
+        >>> from functools import partial
+        >>> import dcarte
+        >>> from pandarallel import pandarallel as pandarallel_
+        >>> from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
 
-    # loading data
-    transitions = dcarte.load('transitions', 'base')
-    # filtering out the transitions longer than 5 minutes
-    transition_upper_bound = 5*60
-    transitions=transitions[transitions['dur']<transition_upper_bound]
+        # loading data
+        >>> transitions = dcarte.load('transitions', 'base')
+        # filtering out the transitions longer than 5 minutes
+        >>> transition_upper_bound = 5*60
+        >>> transitions=transitions[transitions['dur']<transition_upper_bound]
 
-    # setting up parallel compute
-    pandarallel_progress(desc="Computing transition median deltas", smoothing=0, **tqdm_style)
-    pandarallel_.initialize(progress_bar=True)
+        # setting up parallel compute
+        >>> pandarallel_progress(desc="Computing transition median deltas", smoothing=0, **tqdm_style)
+        >>> pandarallel_.initialize(progress_bar=True)
 
-    # relative median function
-    def relative_median_delta(array_sample, array_distribution):
-        import numpy as np # required for parallel compute on Windows
-        median_sample = np.median(array_sample)
-        median_distribution = np.median(array_distribution)
-        if median_distribution == 0:
-            return np.nan
-        return (median_sample-median_distribution)/median_distribution
+        # relative median function
+        >>> def relative_median_delta(array_sample, array_distribution):
+                import numpy as np # required for parallel compute on Windows
+                median_sample = np.median(array_sample)
+                median_distribution = np.median(array_distribution)
+                if median_distribution == 0:
+                    return np.nan
+                return (median_sample-median_distribution)/median_distribution
 
-    # setting up arguments for the rolling calculations
-    datetime_compare_rolling_partial = partial(
-                                        datetime_compare_rolling, 
-                                        funcs=[relative_median_delta], 
-                                        s='1d', 
-                                        w_distribution='7d', 
-                                        w_sample='1d', 
-                                        datetime_col='start_date', 
-                                        value_col='dur',
-                                        label='left',
-                                        )
+        # setting up arguments for the rolling calculations
+        >>> datetime_compare_rolling_partial = partial(
+                datetime_compare_rolling, 
+                funcs=[relative_median_delta], 
+                s='1d', 
+                w_distribution='7d', 
+                w_sample='1d', 
+                datetime_col='start_date', 
+                value_col='dur',
+                label='left',
+                )
 
-    daily_rel_transitions = (transitions
-                            [['patient_id', 'transition', 'start_date', 'dur']]
-                            .sort_values('start_date')
-                            .dropna()
-                            .groupby(by=['patient_id', 'transition',])
-                            .parallel_apply(datetime_compare_rolling_partial)
-                        )
-    daily_rel_transitions['date'] = pd.to_datetime(daily_rel_transitions['start_date']).dt.date
-    daily_rel_transitions = (daily_rel_transitions
-                                .reset_index(drop=False)
-                                .drop(['level_2', 'start_date'], axis=1))
+        >>> daily_rel_transitions = (transitions
+                [['patient_id', 'transition', 'start_date', 'dur']]
+                .sort_values('start_date')
+                .dropna()
+                .groupby(by=['patient_id', 'transition',])
+                .parallel_apply(datetime_compare_rolling_partial)
+                )
+        >>> daily_rel_transitions['date'] = pd.to_datetime(daily_rel_transitions['start_date']).dt.date
+        >>> daily_rel_transitions = (daily_rel_transitions
+                .reset_index(drop=False)
+                .drop(['level_2', 'start_date'], axis=1))
 
-    ```
+
     
     
     Arguments
