@@ -34,6 +34,7 @@ extensions = [
     "sphinx.ext.githubpages",
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
+    'myst_parser'
 ]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
