@@ -27,7 +27,7 @@ class Labeller:
         :code:`.label_types`.
         
 
-        Examples
+        Example
         ---------
 
         .. code-block:: 
