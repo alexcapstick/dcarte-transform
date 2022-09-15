@@ -5,8 +5,8 @@ Here is the documentation for the model selection functionality.
 
 
 
-dcarte_transform.label module
---------------------------------
+dcarte_transform.model_selection module
+---------------------------------------------
 
 
 .. automodule:: dcarte_transform.model_selection

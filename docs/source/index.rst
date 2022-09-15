@@ -31,9 +31,3 @@ how to :ref:`installation` the project.
    recipe
    transform
    utils
-
-
-.. toctree::
-   :caption: API
-   :hidden:
-   api
