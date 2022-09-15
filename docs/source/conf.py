@@ -9,7 +9,7 @@ from unittest import mock
 sys.path.insert(0, os.path.abspath("../.."))
 
 # Mock dcarte because it fails to build in readthedocs
-MOCK_MODULES = ["dcarte", "dcarte.local"]
+MOCK_MODULES = ["dcarte", "dcarte.local", "dcarte.utils"]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 
