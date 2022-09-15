@@ -8,6 +8,5 @@ The following is the documentation for the dcarte-transform module.
    :toctree: _autosummary
    :template: custom-module-template.rst
    :recursive:
-   :members:
-   :undoc-members:
-   :show-inheritance:
+
+   dcarte_transform

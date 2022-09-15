@@ -23,12 +23,17 @@ how to :ref:`installation` the project.
    
 
 .. toctree::
-   :caption: Documentation
+   :caption: Main Documentation
    :hidden:
 
-   api
    label
    model_selection
    recipe
    transform
    utils
+
+
+.. toctree::
+   :caption: API
+   :hidden:
+   api
