@@ -26,8 +26,4 @@ how to :ref:`install` the project.
    :caption: Main Documentation
    :hidden:
 
-   label
-   model_selection
-   recipe
-   transform
-   utils
+   documentation

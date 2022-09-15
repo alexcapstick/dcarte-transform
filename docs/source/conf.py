@@ -34,7 +34,6 @@ extensions = [
     "sphinx.ext.githubpages",
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
-    'myst_parser'
 ]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
@@ -54,7 +53,6 @@ html_theme = 'sphinx_rtd_theme'
 epub_show_urls = 'footnote'
 
 master_doc = 'index'
-
 
 
 
