@@ -13,4 +13,10 @@ how to :ref:`installation` the project.
    This project is under active development.
 
 
-To view the documentation, please see :ref:`api`.
+Contents
+---------
+
+.. toctree::
+
+   usage
+   api
