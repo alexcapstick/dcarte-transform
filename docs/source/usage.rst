@@ -14,12 +14,11 @@ To use dcarte-transform, first install it using pip:
 
 
 
-For example:
+For example::
 
->>> import dcarte_transform as dct
+   >>> import dcarte_transform as dct
 
 
-From here, you can use the functions and classes provided, for example:
+From here, you can use the functions and classes provided, for example::
 
->>> dct.Labeller(...)
-
+   >>> dct.Labeller()
