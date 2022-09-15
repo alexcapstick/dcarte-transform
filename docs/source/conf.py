@@ -2,6 +2,11 @@
 
 # -- Project information
 
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath("../.."))
+
 import dcarte_transform
 
 version = dcarte_transform.__version__
