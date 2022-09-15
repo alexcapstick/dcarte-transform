@@ -13,7 +13,6 @@ To use dcarte-transform, first install it using pip:
    (.venv) $ pip install dcarte-transform
 
 
-.. autoexception:: dcarte_transform.InvalidKindError
 
 For example:
 
