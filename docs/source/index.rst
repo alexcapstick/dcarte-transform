@@ -15,13 +15,18 @@ how to :ref:`installation` the project.
 
 For the documentation to all functions, please see :doc:`main_functionality`.
 
-Contents
----------
+.. Hidden TOCs
 
 .. toctree::
-   :Navigation: Theme Documentation
+   :caption: Quick Links
    :hidden:
 
    usage
+   
+
+.. toctree::
+   :caption: Documentation
+   :hidden:
+
    main_functionality
    api
