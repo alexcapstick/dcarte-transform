@@ -30,7 +30,7 @@ class Labeller:
         Examples
         ---------
 
-        .. code-block:: console
+        .. code-block:: 
 
             >>> l = Labeller()
             >>> l.label_types

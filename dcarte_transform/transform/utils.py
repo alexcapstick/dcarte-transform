@@ -107,7 +107,7 @@ def compute_delta(array:np.array, pad:bool=False,):
     between each element in `x` and its previous element. This is done
     using the formula:
 
-    .. code-block:: console
+    .. code-block:: 
     
         >>> (x_{i} - x_{i-1})/x_{i-1}
 
@@ -306,7 +306,7 @@ def datetime_compare_rolling(df:pd.DataFrame,
     data in them to the functions given in `funcs`,
     which should have structure:
 
-    .. code-block:: console
+    .. code-block:: 
 
         >>> result = func(array_sample, array_distribution)
 
@@ -321,7 +321,7 @@ def datetime_compare_rolling(df:pd.DataFrame,
     by ID and transition. The calculations
     would also be computed in parallel.
 
-    .. code-block:: console
+    .. code-block:: 
     
         >>> from functools import partial
         >>> import dcarte

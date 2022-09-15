@@ -26,7 +26,7 @@ def train_test_group_split(*arrays,
         Example
         ---------
         
-        .. code-block:: console
+        .. code-block:: 
         
             >>> (X_train, X_test, 
                 y_train, y_test, 

@@ -25,7 +25,7 @@ class StratifiedPIDKFold(StratifiedGroupKFold):
         Example
         ---------
         
-        .. code-block:: console
+        .. code-block:: 
 
             >>> splitter = StratifiedPIDKFold()
             >>> splits = splitter.split(X, y.astype(int), ids)
@@ -119,7 +119,7 @@ def train_test_pid_split(*arrays,
 
     Example
     ---------
-    .. code-block:: console
+    .. code-block:: 
     
         >>> (X_train, X_test, 
             y_train, y_test, 

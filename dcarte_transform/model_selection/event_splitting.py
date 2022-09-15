@@ -26,7 +26,7 @@ class StratifiedEventKFold(StratifiedGroupKFold):
         Example
         ---------
 
-        .. code-block:: console
+        .. code-block:: 
         
             >>> splitter = StratifiedEventKFold()
             >>> splits = splitter.split(X, y.astype(int), events)
@@ -120,7 +120,7 @@ def train_test_event_split(*arrays,
     Example
     ---------
 
-    .. code-block:: console
+    .. code-block:: 
     
         >>> (X_train, X_test, 
             y_train, y_test, 
