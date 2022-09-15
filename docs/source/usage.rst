@@ -16,5 +16,10 @@ To use dcarte-transform, first install it using pip:
 
 For example:
 
->>> import dcarte_transform
+>>> import dcarte_transform as dct
+
+
+From here, you can use the functions and classes provided, for example:
+
+>>> dct.Labeller(...)
 
