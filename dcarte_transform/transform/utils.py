@@ -222,7 +222,7 @@ def datetime_rolling(
     Returns
     --------
     
-    - out:  _type_` : 
+    - out: 
         A dataframe, with the calculations under
         the column names equal to the functiosn that 
         produce them and the date time of the beginning
@@ -429,7 +429,7 @@ def datetime_compare_rolling(df:pd.DataFrame,
     Returns
     --------
     
-    - out:  _type_` : 
+    - out: 
         A dataframe, with the calculations under
         the column names equal to the functiosn that 
         produce them and the date time of the beginning

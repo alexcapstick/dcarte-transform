@@ -185,7 +185,7 @@ class Labeller:
             Returns
             --------
 
-            - out:  pd.DataFrame` :
+            - out:  pd.DataFrame:
                 A dataframe containing the Agitation labels, with the corresponding patient_id and
                 date.
 
@@ -230,7 +230,7 @@ class Labeller:
         Returns
         --------
         
-        - out:  pd.DataFrame` : 
+        - out:  pd.DataFrame: 
             A dataframe containing the uti labels, with the corresponding patient_id and 
             date.
 
@@ -521,7 +521,7 @@ class Labeller:
         Returns
         --------
         
-        - out:  pd.DataFrame` : 
+        - out:  pd.DataFrame: 
             A dataframe containing the labels, with the corresponding patient_id and 
             date.
 

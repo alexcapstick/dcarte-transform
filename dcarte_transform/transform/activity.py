@@ -339,7 +339,7 @@ def compute_daily_location_freq(df:pd.DataFrame,
     Returns
     ---------
 
-    :code:`table_of_frequencies:  pandas.DataFrame: 
+    - table_of_frequencies:  pandas.DataFrame: 
         The table containing the frequencies, with column names
         :code:`[id_col]`, :code:`'date'` and :code:`[name]` or 
         :code:`[location]_freq`.
