@@ -6,3 +6,7 @@ sphinx:
 submodules:
   include: all
   recursive: True
+
+python:
+  install:
+    - requirements: requirements.txt
