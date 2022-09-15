@@ -20,10 +20,6 @@ setup(
                         "scikit-learn>=1.0",
                         "pydtmc>=6.10",
                         "tqdm>=4.64",
-                        "tensorboard>=2.9",
-                        "pytorch-lightning>=1.6",
                         "pandarallel>=1.6",
-                        "aml @ git+https://github.com/alexcapstick/AML",
-                        "sku @ git+https://github.com/alexcapstick/SKPipelineUtils"
     ]
 )
