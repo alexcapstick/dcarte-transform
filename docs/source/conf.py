@@ -27,11 +27,15 @@ release = '.'.join(version.split('.')[:2])
 extensions = [
     'readthedocs_ext.readthedocs',
     'sphinx.ext.duration',
+    "sphinx_rtd_theme",
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
+    "sphinx.ext.napoleon",
+    "sphinx.ext.githubpages",
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
 ]
+autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
