@@ -2,15 +2,13 @@ import os
 from setuptools import setup, find_packages
 import subprocess
 import logging
-
-PACKAGE_NAME = 'dcarte_transform'
+from dcarte_transform import __version__, __doc__, __author__, __title__
 
 setup(
-    name=PACKAGE_NAME,
-    version='0.0.1',
-    description="A package that can be used alongside DCARTE"\
-                "that adds extra functionality for engineered features and machine learning.",
-    author='Alex Capstick and Francesca Palermo',
+    name=__title__,
+    version=__version__,
+    description=__doc__,
+    author=__author__,
     url='',
     packages=find_packages(),
     long_description=open('README.txt').read(),
