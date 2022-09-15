@@ -22,28 +22,28 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     '''
         This function will return the Agitation labels.
         If a single day for a paticular ID contains two different
-        labels (usually caused by using `days_either_side`),
+        labels (usually caused by using :code:`days_either_side`),
         then both labels are removed.
 
         Arguments
         ---------
 
-        - `days_either_side`: `int`, optional:
+        - days_either_side:  int, optional:
             The number of days either side of a label that will be given the same label.
             If these days overlap, if the label is the same then the first will be kept.
             If they are different, then neither will be kept.
-            Defaults to `0`.
+            Defaults to :code:`0`.
 
-        - `return_event`: `bool`, optional:
+        - return_event:  bool, optional:
             This dictates whether another column should be added, with a unique id given to each of the separate
             UTI events. This allows the user to group the outputted data based on events.
-            Defaults to `False`.
+            Defaults to :code:`False`.
 
 
         Returns
         --------
 
-        - `out`: `pd.DataFrame` :
+        - out:  pd.DataFrame` :
             A dataframe containing the Agitation labels, with the corresponding patient_id and
             date.
 
@@ -115,38 +115,38 @@ def label(df:pd.DataFrame, id_col:str='patient_id', datetime_col:str='start_date
             days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     '''
     This function will label the input dataframe based on the agitation data 
-    in `behaviour`.
+    in :code:`behaviour`.
 
     Arguments
     ----------
     
-    - `df`: `pandas.DataFrame`:
-        Unlabelled dataframe, must contain columns `[id_col, datetime_col]`, where `id_col` is the
-        ids of participants and `datetime_col` is the time of the sensors.
+    - df:  pandas.DataFrame: 
+        Unlabelled dataframe, must contain columns :code:`[id_col, datetime_col]`, where :code:`id_col` is the
+        ids of participants and :code:`datetime_col` is the time of the sensors.
 
-    - `id_col`: `str`, optional:
+    - id_col:  str, optional:
         The column name that contains the ID information.
-        Defaults to `'patient_id'`.
+        Defaults to :code:`'patient_id'`.
 
-    - `datetime_col`: `str`, optional:
+    - datetime_col:  str, optional:
         The column name that contains the date time information.
-        Defaults to `'start_date'`.
+        Defaults to :code:`'start_date'`.
 
-    - `days_either_side`: `int`, optional:
+    - days_either_side:  int, optional:
         The number of days either side of a label that will be given the same label.
-        Defaults to `0`.
+        Defaults to :code:`0`.
     
-    - `return_event`: `bool`, optional:
+    - return_event:  bool, optional:
         This dictates whether another column should be added, with a unique id given to each of the separate
         agitation events. This allows the user to group the outputted data based on events.
-        Defaults to `False`.
+        Defaults to :code:`False`.
 
     Returns
     ---------
     
-    - df_labelled: `pandas.DataFrame`:
-        This is a dataframe containing the original data along with a new column, `'agitation_labels'`,
-        which contains the labels. If `return_event=True`, a column titled `'agitation_event'` will be 
+    - df_labelled: pandas.DataFrame: 
+        This is a dataframe containing the original data along with a new column, :code:`'agitation_labels'`,
+        which contains the labels. If :code:`return_event=True`, a column titled :code:`'agitation_event'` will be 
         added which contains unique IDs for each of the agitation episodes.
     '''
 
@@ -179,29 +179,29 @@ def label_number_previous(
     
     Arguments
     ---------
-    - `df`: `pandas.DataFrame`:
+    - df:  pandas.DataFrame: 
         The dataframe to append the number of previous agitation positives to.
     
-    - `id_col`: `str`, optional:
+    - id_col:  str, optional:
         The column name that contains the ID information.
-        Defaults to `'patient_id'`.
+        Defaults to :code:`'patient_id'`.
 
-    - `datetime_col`: `str`, optional:
+    - datetime_col:  str, optional:
         The column name that contains the date time information.
-        Defaults to `'start_date'`.
+        Defaults to :code:`'start_date'`.
 
-    - `day_delay`: `int`, optional:
+    - day_delay:  int, optional:
         The number of days after an agitation is detected when the data reflects
         that the ID has had another previous agitation. This is used to ensure
         that the predictive model does not simply learn that to look for 
         when this feature increases.
-        Defaults to `1`.
+        Defaults to :code:`1`.
     
     Returns
     ---------
     
-    - df_out: `pandas.DataFrame`:
-        This is a dataframe containing the original data along with a new column, `'agitation_previous'`,
+    - df_out: pandas.DataFrame: 
+        This is a dataframe containing the original data along with a new column, :code:`'agitation_previous'`,
         which contains the number of previous agitations to date for that ID.
     
     

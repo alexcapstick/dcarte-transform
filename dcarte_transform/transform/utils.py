@@ -12,29 +12,29 @@ import logging
 def _split_apply_func(array:np.array, mask:np.array, func):
     '''
     This function makes the call:
-    `func(array[mask], array[~mask])`.
+    :code:`func(array[mask], array[~mask])`.
     
     Arguments
     ---------
     
-    - `array`: `np.array`: 
+    - array:  np.array:  
         The array to split across the first two arguments.
     
-    - `mask`: `np.array`: 
+    - mask:  np.array:  
         The mask that decides which argument part of the array should
-        be in. `True` dictates that the corresponding element
-        should be in the first positional argument in `func`.
+        be in. :code:`True` dictates that the corresponding element
+        should be in the first positional argument in :code:`func`.
     
-    - `func`: `function`: 
+    - func:  function:  
         The function that is applied to the arguments.
         It should accept arguments like:
-        `func(array1, array2)`.    
+        :code:`func(array1, array2)`.    
     
     
     Returns
     --------
     
-    - `out`: `Any` : 
+    - out:  Any` : 
         The function output.
     
     
@@ -52,23 +52,23 @@ def moving_average(array:np.array, w:int=3, pad:bool=False,):
     Arguments
     ---------
 
-    - `array`: `numpy.array`:
+    - array:  numpy.array: 
         This is the array to calculate the moving average of.
     
-    - `w`: `int`, optional:
+    - w:  int, optional:
         This is the window size to use when calculating the
         moving average of the array.
     
-    - `pad`: `bool`, optional:
+    - pad:  bool, optional:
         Dictates whether NAN values should be added to the beginning
         of the array, so that the output is of the same shape as 
-        `array`.
+        :code:`array`.
 
     
     Returns
     ---------
 
-    - `moving_average`: `numpy.array`:
+    - moving_average:  numpy.array: 
         An array containing the moving average.
     
     
@@ -104,7 +104,7 @@ def relative_func_delta(array_sample, array_distribution, func):
 def compute_delta(array:np.array, pad:bool=False,):
     '''
     This function allows the user to calculate the proportional change
-    between each element in `x` and its previous element. This is done
+    between each element in :code:`x` and its previous element. This is done
     using the formula:
 
     .. code-block:: 
@@ -115,19 +115,19 @@ def compute_delta(array:np.array, pad:bool=False,):
     Arguments
     ---------
 
-    - `x`: `numpy.array`:
+    - x:  numpy.array: 
         The array to calculate the delta values on.
     
-    - `pad`: `bool`, optional:
+    - pad:  bool, optional:
         Dictates whether NAN values should be added to the beginning
         of the array, so that the output is of the same shape as 
-        `array`.
+        :code:`array`.
 
     
     Returns
     ---------
     
-    - `delta_values`: `pandas.Series`:
+    - delta_values:  pandas.Series: 
         An array containing the delta values.
 
     
@@ -160,74 +160,74 @@ def datetime_rolling(
                     ):
     '''
     This function will roll over a dataframe, with step size
-    equal to `s` and with a window equal to `w`, applying
+    equal to :code:`s` and with a window equal to :code:`w`, applying
     the functions given to each window.
 
     This is required as pandas does not allow for a custom step
-    size in its `.rolling()` function.
+    size in its :code:`.rolling()` function.
     
     
     
     Arguments
     ---------
     
-    - `df`: `_type_`: 
+    - df:  _type_:  
         The dataframe to apply the rolling function to.
     
-    - `funcs`: `str`, optional:
+    - funcs:  str, optional:
         The functions that will be applied to the values.
 
-    - `s`: `str`, optional:
+    - s:  str, optional:
         The step size when rolling over the dataframe. 
-        Defaults to `'1d'`.
+        Defaults to :code:`'1d'`.
 
-    - `w`: `str`, optional:
+    - w:  str, optional:
         The window size used in the rolling calculation. 
-        Defaults to `'7d'`.
+        Defaults to :code:`'7d'`.
     
-    - `datetime_col`: `str`, optional:
+    - datetime_col:  str, optional:
         The name of the column containing the datetimes.
-        This will be passed into `pandas.to_datetime()` 
+        This will be passed into :code:`pandas.to_datetime()` 
         before operations are applied to it. 
-        Defaults to `'start_date'`.
+        Defaults to :code:`'start_date'`.
     
-    - `value_col`: `str`, optional:
+    - value_col:  str, optional:
         The column name for the values that will be
-        passed to the functions given in `funcs`. 
-        Defaults to `'value'`.
+        passed to the functions given in :code:`funcs`. 
+        Defaults to :code:`'value'`.
     
-    - `label`: `str`, optional:
+    - label:  str, optional:
         The direction used when labelling date time values
         based on each of the steps. This can be in 
-        `['left', 'right']`.
-        Defaults to `'left'`.
+        :code:`['left', 'right']`.
+        Defaults to :code:`'left'`.
     
-    - `dataframe_apply`: `bool`, optional:
+    - dataframe_apply:  bool, optional:
         Whether to pass the functions the section of the
         dataframe for each window, or the values from 
-        `value_col`.
-        Defaults to `False`.
+        :code:`value_col`.
+        Defaults to :code:`False`.
     
-    - `pad`: `bool`, optional:
+    - pad:  bool, optional:
         Whether to pad the dates either side of the rolling 
-        operation. If `True`, the first window will be 
+        operation. If :code:`True`, the first window will be 
         data from before the earliest date, only containing the
         earliest date and the last window will contain 
         dates from after the latest date, and contain only the 
         data from the latest date. 
-        Defaults to `False`.
+        Defaults to :code:`False`.
         
     
     
     Returns
     --------
     
-    - `out`: `_type_` : 
+    - out:  _type_` : 
         A dataframe, with the calculations under
         the column names equal to the functiosn that 
         produce them and the date time of the beginning
         or end of each window, depending on the 
-        `label` argument.
+        :code:`label` argument.
     
     
     '''
@@ -301,9 +301,9 @@ def datetime_compare_rolling(df:pd.DataFrame,
                                 ):
     '''
     This function will roll over a dataframe, with step size
-    equal to `s`. This function compares the data in 
-    `w_sample` and `w_distribution` by passing the 
-    data in them to the functions given in `funcs`,
+    equal to :code:`s`. This function compares the data in 
+    :code:`w_sample` and :code:`w_distribution` by passing the 
+    data in them to the functions given in :code:`funcs`,
     which should have structure:
 
     .. code-block:: 
@@ -377,64 +377,64 @@ def datetime_compare_rolling(df:pd.DataFrame,
     Arguments
     ---------
     
-    - `df`: `_type_`: 
+    - df:  _type_:  
         The dataframe to apply the rolling function to.
     
-    - `funcs`: `str`, optional:
+    - funcs:  str, optional:
         The functions that will be applied to the values.
         This should allow for two arguments to be passed.
         It will be called in the following way:
-        `func(array_distribution, array_sample)`.
+        :code:`func(array_distribution, array_sample)`.
 
-    - `s`: `str`, optional:
+    - s:  str, optional:
         The step size when rolling over the dataframe. 
-        Defaults to `'1d'`.
+        Defaults to :code:`'1d'`.
 
-    - `w_distribution`: `str`, optional:
+    - w_distribution:  str, optional:
         The window size for the distribution.
-        Defaults to `'7d'`.
+        Defaults to :code:`'7d'`.
     
-    - `w_sample`: `str`, optional:
+    - w_sample:  str, optional:
         The window size for the sample.
-        Defaults to `'7d'`.
+        Defaults to :code:`'7d'`.
 
-    - `datetime_col`: `str`, optional:
+    - datetime_col:  str, optional:
         The name of the column containing the datetimes.
-        This will be passed into `pandas.to_datetime()` 
+        This will be passed into :code:`pandas.to_datetime()` 
         before operations are applied to it. 
-        Defaults to `'start_date'`.
+        Defaults to :code:`'start_date'`.
     
-    - `value_col`: `str`, optional:
+    - value_col:  str, optional:
         The column name for the values that will be
-        passed to the functions given in `funcs`. 
-        Defaults to `'value'`.
+        passed to the functions given in :code:`funcs`. 
+        Defaults to :code:`'value'`.
     
-    - `label`: `str`, optional:
+    - label:  str, optional:
         The direction used when labelling date time values
         based on each of the steps. This can be in 
-        `['left', 'right']`. `'left'` will use
-        the date from the beginning of the data in `w_sample`,
-        whereas `'right'` will use the end datetime of
-        the data in `w_sample`.
-        Defaults to `'left'`.
+        :code:`['left', 'right']`. :code:`'left'` will use
+        the date from the beginning of the data in :code:`w_sample`,
+        whereas :code:`'right'` will use the end datetime of
+        the data in :code:`w_sample`.
+        Defaults to :code:`'left'`.
     
-    - `sorted`: `bool`, optional:
-        If `False`, this function will sort
-        the dataframe on the `datetime_col` before
+    - sorted:  bool, optional:
+        If :code:`False`, this function will sort
+        the dataframe on the :code:`datetime_col` before
         performing any calculations. If the dataframe is
-        already sorted then please give `sorted=True`.
-        Defaults to `False`.
+        already sorted then please give :code:`sorted=True`.
+        Defaults to :code:`False`.
 
     
     Returns
     --------
     
-    - `out`: `_type_` : 
+    - out:  _type_` : 
         A dataframe, with the calculations under
         the column names equal to the functiosn that 
         produce them and the date time of the beginning
         or end of each window, depending on the 
-        `label` argument.
+        :code:`label` argument.
     
     
     '''

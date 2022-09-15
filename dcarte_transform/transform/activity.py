@@ -19,7 +19,7 @@ def compute_week_number(df:pd.DataFrame):
     Arguments
     ---------
 
-    - `df`: `pd.DataFrame`:
+    - df:  pd.DataFrame: 
         A data frame containing the dates to convert to week numbers.
     
     '''
@@ -36,24 +36,24 @@ def compute_p_matrix(sequence, return_events=False):
     Arguments
     ---------
     
-    - `sequence`: `numpy.array`: 
+    - sequence:  numpy.array:  
         A sequence of events that will be used to calculate the stochastic matrix.
 
-    - `return_events`: `bool`, optional:
+    - return_events:  bool, optional:
         Dictates whether a list of the events should be returned, in the 
-        order of their appearance in the stochastic matrix, `p_martix`.
-        Defaults to `False`
+        order of their appearance in the stochastic matrix, :code:`p_martix`.
+        Defaults to :code:`False`
     
     
     Returns
     --------
     
-    - `p_matrix`: `numpy.array`: 
+    - p_matrix:  numpy.array:  
         A stochastic matrix, in which all of the rows sum to 1.
 
-    - `unique_locations`: `list`:
+    - unique_locations:  list: 
         A list of the events in the order of their appearance in the stochastic
-        matrix, `p_martix`. This is only returned if `return_events=True`
+        matrix, :code:`p_martix`. This is only returned if :code:`return_events=True`
     
     
     '''
@@ -100,7 +100,7 @@ def compute_entropy_rate_from_sequence(sequence):
     Arguments
     ---------
 
-    - `sequence`: `numpy.array`:
+    - sequence:  numpy.array: 
         A sequence of events to calculate the entropy rate on.
 
 
@@ -108,7 +108,7 @@ def compute_entropy_rate_from_sequence(sequence):
     Returns
     --------
 
-    - `out`: `float`:
+    - out:  float: 
         Entropy rate
 
 
@@ -145,7 +145,7 @@ def compute_entropy_rate(df: pd.DataFrame,
                                                                                         typing.List[pd.DataFrame]]:
     '''
     This function allows the user to return a pandas.DataFrame with the entropy rate calculated
-    for every week or day. The dataframe must contain `[id_col]`, and columns containing the 
+    for every week or day. The dataframe must contain :code:`[id_col]`, and columns containing the 
     visited location names and the date and time of these location visits.
     
     
@@ -167,40 +167,40 @@ def compute_entropy_rate(df: pd.DataFrame,
     Arguments
     ---------
     
-    - `df`: `pandas.DataFrame`: 
+    - df:  pandas.DataFrame:  
         A data frame containing columns with the participant IDs,
         visited location names, and the date and time of these location visits.
     
-    - `id_col`: `str`, optional:
+    - id_col:  str, optional:
         The name of the column that contains the participant IDs.
-        Defaults to `'start_date'`.
+        Defaults to :code:`'start_date'`.
 
-    - `datetime_col`: `str`, optional:
+    - datetime_col:  str, optional:
         The name of the column that contains the date time of location visits.
-        Defaults to `'start_date'`.
+        Defaults to :code:`'start_date'`.
 
-    - `location_col`: `str`, optional:
+    - location_col:  str, optional:
         The name of the column that contains the location names visited.
-        Defaults to `'location_name'`.
+        Defaults to :code:`'location_name'`.
     
-    - `sensors`: `list` of `str` or `str`: 
-        The values of the `'location'` column of `df` that will be 
+    - sensors:  list` of :code:`str` or :code:`str:  
+        The values of the :code:`'location'` column of :code:`df` that will be 
         used in the entropy calculations.
-        Defaults to `'all'`.
+        Defaults to :code:`'all'`.
     
-    - `freq`: `list` of `str` or `str`:
-        The period to calculate the entropy for. This can either be `'day'`
-        or `'week'` or a list containing both.
-        Defaults to `['day', 'week']`
+    - freq:  list` of :code:`str` or :code:`str: 
+        The period to calculate the entropy for. This can either be :code:`'day'`
+        or :code:`'week'` or a list containing both.
+        Defaults to :code:`['day', 'week']`
     
     
     
     Returns
     --------
     
-    - `out`: `pd.DataFrame`: 
+    - out:  pd.DataFrame:  
         returns a list of data frames containing the weekly and daily entropy
-        or single dataframe if only one `freq` was given.
+        or single dataframe if only one :code:`freq` was given.
         For weekly entropy, the date label corresponds to the start of the week,
         starting from Sunday.
     
@@ -285,7 +285,7 @@ def compute_daily_location_freq(df:pd.DataFrame,
     Example
     ---------
     
-    To get the frequency of activity in the `'bathroom1'` between 
+    To get the frequency of activity in the :code:`'bathroom1'` between 
     the times of 00:00 to 08:00 and 20:00 to 00:00 each day, you could
     run the following:
     
@@ -300,49 +300,49 @@ def compute_daily_location_freq(df:pd.DataFrame,
     Arguments
     ---------
 
-    - `df`: `pandas.DataFrame`:
+    - df:  pandas.DataFrame: 
         The data frame containing the location visits to calculate the 
         frequency from.
     
-    - `location`: `str`:
+    - location:  str: 
         The location name to calculate the frequencies for.
     
-    - `id_col`: `str`, optional:
+    - id_col:  str, optional:
         The name of the ID column that contains the participant IDs.
-        Defaults to `'patient_id'`.
+        Defaults to :code:`'patient_id'`.
 
-    - `location_col`: `str`, optional:
+    - location_col:  str, optional:
         The name of the location column that contains the visited location.
-        Defaults to `'location_name'`.
+        Defaults to :code:`'location_name'`.
     
-    - datetime_col: `str`, optional:
+    - datetime_col: str, optional:
         The name of the location column that contains the date times
         of the location visits. This will be converted using 
-        `pandas.to_datetime`.
-        Defaults to `'start_date'`.
+        :code:`pandas.to_datetime`.
+        Defaults to :code:`'start_date'`.
     
-    - time_range: `None` or `list` of `str`, optional:
+    - time_range: None` or :code:`list` of :code:`str, optional:
         A time range given here, would allow you filter the frequencies
         by a given time. This allows you to calculate the frequencies
         of visits to a location during the night, for example. Acceptable
-        arguments here are `['[mm]:[ss]','[mm]:[ss]']`, in which 
+        arguments here are :code:`['[mm]:[ss]','[mm]:[ss]']`, in which 
         the first element of the list is the start time and the second
         element is the end time.
-        Defaults to `None`.
+        Defaults to :code:`None`.
     
-    - name: `str` or None:
+    - name: str` or None:
         This argument allows you to name the outputted column that contains
         the frequencies.
-        Defaults to `None`
+        Defaults to :code:`None`
     
     
     Returns
     ---------
 
-    `table_of_frequencies`: `pandas.DataFrame`:
+    :code:`table_of_frequencies:  pandas.DataFrame: 
         The table containing the frequencies, with column names
-        `[id_col]`, `'date'` and `[name]` or 
-        `[location]_freq`.
+        :code:`[id_col]`, :code:`'date'` and :code:`[name]` or 
+        :code:`[location]_freq`.
 
 
     

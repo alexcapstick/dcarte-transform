@@ -15,39 +15,39 @@ def _label(
     datetime_col:str='start_date',
     ) -> pd.DataFrame:
     '''
-    This function will label the input dataframe based on the given `label_name` 
-    in `procedure`.
+    This function will label the input dataframe based on the given :code:`label_name` 
+    in :code:`procedure`.
 
     Arguments
     ----------
     
-    - `df`: `pandas.DataFrame`:
-        Unlabelled dataframe, must contain columns `[id_col, datetime_col]`, where `id_col` is the
-        ids of participants and `datetime_col` is the time of the sensors.
+    - df:  pandas.DataFrame: 
+        Unlabelled dataframe, must contain columns :code:`[id_col, datetime_col]`, where :code:`id_col` is the
+        ids of participants and :code:`datetime_col` is the time of the sensors.
 
-    - `label_name`: `str`:
+    - label_name:  str: 
         The name of the label to add to the column.
 
-    - `label_function`: `typing.Callable`:
+    - label_function:  typing.Callable: 
         The labelling function to use. This should return the labels in a dataframe
-        with columns `['patient_id', 'date', 'outcome']` and any additional 
-        columns,  in which `'patient_id'` refers
-        to a column of str values, `'date'` refers to a column of date values (accepted
-        by `pd.to_datetime`), and `'outcome'` refers to a column of boolean values.
+        with columns :code:`['patient_id', 'date', 'outcome']` and any additional 
+        columns,  in which :code:`'patient_id'` refers
+        to a column of str values, :code:`'date'` refers to a column of date values (accepted
+        by :code:`pd.to_datetime`), and :code:`'outcome'` refers to a column of boolean values.
 
-    - `id_col`: `str`, optional:
-        The column name in `df` that contains the ID information.
-        Defaults to `'patient_id'`.
+    - id_col:  str, optional:
+        The column name in :code:`df` that contains the ID information.
+        Defaults to :code:`'patient_id'`.
 
-    - `datetime_col`: `str`, optional:
-        The column name in `df` that contains the date time information.
-        Defaults to `'start_date'`.
+    - datetime_col:  str, optional:
+        The column name in :code:`df` that contains the date time information.
+        Defaults to :code:`'start_date'`.
 
     Returns
     ---------
     
-    - df_labelled: `pandas.DataFrame`:
-        This is a dataframe containing the original data along with a new column, `'outcome'`,
+    - df_labelled: pandas.DataFrame: 
+        This is a dataframe containing the original data along with a new column, :code:`'outcome'`,
         which contains the labels.
     '''
 
@@ -102,36 +102,36 @@ def _label_number_previous(
     Arguments
     ---------
 
-    - `df`: `pandas.DataFrame`:
+    - df:  pandas.DataFrame: 
         The dataframe to append the number of previous label positives to.
 
-    - `label_function`: `typing.Callable`:
+    - label_function:  typing.Callable: 
         The labelling function to use. This should return the labels in a dataframe
-        with columns `['patient_id', 'date', 'outcome']`, in which `'patient_id'` refers
-        to a column of str values, `'date'` refers to a column of date values (accepted
-        by `pd.to_datetime`), and `'outcome'` refers to a column of boolean values.
+        with columns :code:`['patient_id', 'date', 'outcome']`, in which :code:`'patient_id'` refers
+        to a column of str values, :code:`'date'` refers to a column of date values (accepted
+        by :code:`pd.to_datetime`), and :code:`'outcome'` refers to a column of boolean values.
     
-    - `id_col`: `str`, optional:
+    - id_col:  str, optional:
         The column name that contains the ID information.
-        Defaults to `'patient_id'`.
+        Defaults to :code:`'patient_id'`.
 
-    - `datetime_col`: `str`, optional:
+    - datetime_col:  str, optional:
         The column name that contains the date time information.
-        Defaults to `'start_date'`.
+        Defaults to :code:`'start_date'`.
 
-    - `day_delay`: `int`, optional:
+    - day_delay:  int, optional:
         The number of days after a label is detected when the data reflects
         that the ID has had another previous label. This is used to ensure
         that the predictive model does not simply learn that to look for 
         when this feature increases.
-        Defaults to `1`.
+        Defaults to :code:`1`.
 
     
     Returns
     ---------
     
-    - df_out: `pandas.DataFrame`:
-        This is a dataframe containing the original data along with a new column, `f'previous_outcome'`,
+    - df_out: pandas.DataFrame: 
+        This is a dataframe containing the original data along with a new column, :code:`f'previous_outcome'`,
         which contains the number of previous labels to date for that ID.
 
     '''

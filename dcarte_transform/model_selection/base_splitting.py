@@ -17,9 +17,9 @@ def train_test_group_split(*arrays,
                             ):
         '''
         This function returns the train and test data given the
-        split and the data. A single `group` will not be in
+        split and the data. A single :code:`group` will not be in
         both the training and testing set. You should use either
-        `test_size` or `train_size` but not both.
+        :code:`test_size` or :code:`train_size` but not both.
 
 
 
@@ -36,39 +36,39 @@ def train_test_group_split(*arrays,
         Arguments
         ---------
 
-        - `arrays`: `array-like`, optional:
+        - arrays:  array-like, optional:
             The data to split into training and testing sets. The labels and
-            the group should be passed to `y` and `group` respectively.
+            the group should be passed to :code:`y` and :code:`group` respectively.
 
-        - `y`: `array-like`, optional:
-            Label data with shape `(n_samples)`, 
-            where `n_samples` is the number of samples. These are the
+        - y:  array-like, optional:
+            Label data with shape :code:`(n_samples)`, 
+            where :code:`n_samples` is the number of samples. These are the
             labels that are used to group the data into either the training
             or testing set.
 
-        - `group`: `array-like`, optional:
-            Event data with shape `(n_samples)`, 
-            where `n_samples` is the number of samples. These are the
+        - group:  array-like, optional:
+            Event data with shape :code:`(n_samples)`, 
+            where :code:`n_samples` is the number of samples. These are the
             group ids that are used to group the data into either the training
             or testing set.
         
-        - `test_size`: `float`, optional:
+        - test_size:  float, optional:
             This dictates the size of the outputted test set. This 
-            should be used if `train_size=None`. If no `test_size`
-            or `train_size` are given, then `test_size` will default
-            to `0.25`
-            Defaults to `None`.
+            should be used if :code:`train_size=None`. If no :code:`test_size`
+            or :code:`train_size` are given, then :code:`test_size` will default
+            to :code:`0.25`
+            Defaults to :code:`None`.
 
-        - `train_size`: `float`, optional:
+        - train_size:  float, optional:
             This dictates the size of the outputted train set. This 
-            should be used if `test_size=None`.
-            Defaults to `None`.
+            should be used if :code:`test_size=None`.
+            Defaults to :code:`None`.
 
-        - `shuffle`: `bool`, optional:
+        - shuffle:  bool, optional:
             dictates whether the data should be shuffled before the split
             is made.
         
-        - `random_state`: `None` or `int`, optional:
+        - random_state:  None` or :code:`int, optional:
             This dictates the random seed that is used in the random
             operations for this function.
 
@@ -77,7 +77,7 @@ def train_test_group_split(*arrays,
         Returns
         ----------
 
-        - `split arrays`: `list`:
+        - split arrays:  list: 
             This is a list of the input data, split into the training and
             testing sets. See the Example for an understanding of the 
             order of the outputted arrays.
