@@ -4,15 +4,17 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath("..."))
-from dcarte_transform import __version__, __description__, __author__, __title__, __copyright__
 
-project = __title__
-copyright = __copyright__
-author = __author__
+sys.path.insert(0, os.path.abspath("../.."))
 
-release = '.'.join(__version__.split('.')[:2])
-version = __version__
+import dcarte_transform
+
+version = dcarte_transform.__version__
+doc = dcarte_transform.__doc__
+author = dcarte_transform.__author__
+project = dcarte_transform.__title__
+copyright = dcarte_transform.__copyright__
+release = '.'.join(version.split('.')[:2])
 
 # -- General configuration
 

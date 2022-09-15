@@ -1,1 +1,1 @@
-from .__version__ import __version__, __author__, __doc__, __title__
+from .__version__ import __version__, __author__, __doc__, __title__, __copyright__
