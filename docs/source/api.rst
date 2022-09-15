@@ -1,7 +1,6 @@
 API
 ====
 
-.. _api:
 
 The following is the documentation for the dcarte-transform module.
 
