@@ -4,7 +4,7 @@ Documentation
 
 The full documentation is available here. Use the side bar to select the sub-module that is most applicable.
 
-All of these functions can be loaded in the following way::
+All of these functions can be loaded from the :code:`dcarte_transform` package directly, for example::
 
 	>>> import dcarte_transform as dct
 	>>> dct.Labeller()
