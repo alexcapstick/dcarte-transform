@@ -10,11 +10,11 @@ from pandarallel import pandarallel as pandarallel_
 import dcarte
 from dcarte.local import LocalDataset
 
-from ..utils.progress import tqdm_style, pandarallel_progress
-from ..transform.utils import datetime_compare_rolling, compute_delta
-from ..transform.activity import compute_daily_location_freq, compute_entropy_rate
-from ..recipe.tihm_and_minder_recipe import create_tihm_and_minder_datasets
-from ..label.uti import label_number_previous
+from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
+from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta
+from dcarte_transform.transform.activity import compute_daily_location_freq, compute_entropy_rate
+from dcarte_transform.recipe.tihm_and_minder_recipe import create_tihm_and_minder_datasets
+from dcarte_transform.label.uti import label_number_previous
 
 
 
@@ -514,7 +514,7 @@ def process_core_raw_and_fe_data(self):
                                                 core_raw_fe_data, 
                                                 id_col='patient_id',
                                                 datetime_col='date',
-                                                day_delay=7,
+                                                day_delay=21,
                                                 )
 
     return core_raw_fe_data
