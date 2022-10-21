@@ -6,17 +6,21 @@ import pandas as pd
 import typing
 import functools
 from pandarallel import pandarallel as pandarallel_
-
 import dcarte
 from dcarte.local import LocalDataset
 
-from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
-from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta
-from dcarte_transform.transform.activity import compute_daily_location_freq, compute_entropy_rate
-from dcarte_transform.recipe.tihm_and_minder_recipe import create_tihm_and_minder_datasets
-from dcarte_transform.label.uti import label_number_previous
-
-
+try:
+    from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
+    from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta
+    from dcarte_transform.transform.activity import compute_daily_location_freq, compute_entropy_rate
+    from dcarte_transform.recipe.tihm_and_minder_recipe import create_tihm_and_minder_datasets
+    from dcarte_transform.label.uti import label_number_previous
+except ImportError:
+    from ..utils.progress import tqdm_style, pandarallel_progress
+    from ..transform.utils import datetime_compare_rolling, compute_delta
+    from ..transform.activity import compute_daily_location_freq, compute_entropy_rate
+    from ..recipe.tihm_and_minder_recipe import create_tihm_and_minder_datasets
+    from ..label.uti import label_number_previous
 
 ######### More readable feature names
 
