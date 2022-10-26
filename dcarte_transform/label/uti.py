@@ -158,12 +158,13 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
         df_labels.reset_index(drop=True)
     
     # removing the rows with contradictory labels
-    df_labels = (df_labels
-                    # keeping one of the rows where the labels are the same
-                    .drop_duplicates(subset=['patient_id', 'date', 'outcome'], keep='first')
-                    # removing rows where the labels are the different
-                    .drop_duplicates(subset=['patient_id', 'date'], keep=False)
-                    )
+    df_labels = (
+        df_labels
+        # keeping one of the rows where the labels are the same
+        .drop_duplicates(subset=['patient_id', 'date', 'outcome'], keep='first')
+        # removing rows where the labels are the different
+        .drop_duplicates(subset=['patient_id', 'date'], keep=False)
+        )
 
     return df_labels.reset_index(drop=True).dropna(subset='outcome')
 
@@ -171,8 +172,13 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
 
 
 @dcarte.utils.timer('mapping UTI labels')
-def label(df:pd.DataFrame, id_col:str='patient_id', datetime_col:str='start_date', 
-            days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
+def label(
+    df:pd.DataFrame, 
+    id_col:str='patient_id', 
+    datetime_col:str='start_date', 
+    days_either_side:int=0, 
+    return_event:bool=False,
+    ) -> pd.DataFrame:
     '''
     This function will label the input dataframe based on the uti data 
     in :code:`procedure`.

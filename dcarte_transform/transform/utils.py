@@ -148,16 +148,16 @@ def compute_delta(array:np.array, pad:bool=False,):
 
 
 def datetime_rolling(
-                    df:pd.DataFrame, 
-                    funcs, 
-                    s:str='1d', 
-                    w:str='7d', 
-                    datetime_col:str='start_date',
-                    value_col:str='value', 
-                    label:str='left',
-                    dataframe_apply:bool=False,
-                    pad:bool=False,
-                    ):
+    df:pd.DataFrame, 
+    funcs, 
+    s:str='1d', 
+    w:str='7d', 
+    datetime_col:str='start_date',
+    value_col:str='value', 
+    label:str='left',
+    dataframe_apply:bool=False,
+    pad:bool=False,
+    ):
     '''
     This function will roll over a dataframe, with step size
     equal to :code:`s` and with a window equal to :code:`w`, applying
@@ -289,16 +289,17 @@ def datetime_rolling(
 
 
 
-def datetime_compare_rolling(df:pd.DataFrame, 
-                                funcs,
-                                s:str='1d', 
-                                w_distribution:str='7d', 
-                                w_sample:str='1d', 
-                                datetime_col:str='start_date', 
-                                value_col:str='value', 
-                                label:str='left',
-                                sorted=False,
-                                ):
+def datetime_compare_rolling(
+    df:pd.DataFrame, 
+    funcs,
+    s:str='1d', 
+    w_distribution:str='7d', 
+    w_sample:str='1d', 
+    datetime_col:str='start_date', 
+    value_col:str='value', 
+    label:str='left',
+    sorted=False,
+    ):
     '''
     This function will roll over a dataframe, with step size
     equal to :code:`s`. This function compares the data in 
@@ -468,14 +469,30 @@ def datetime_compare_rolling(df:pd.DataFrame,
         
         # collating data for both windows
         all_window_values = df[df[datetime_col].between(start_date, end_date, inclusive='left')]
+
         distribution_values = (all_window_values
-                                [all_window_values[datetime_col].between(start_date, 
-                                                                            distribution_end_date, 
-                                                                            inclusive='left')])[value_col].values
+            [
+                all_window_values
+                [datetime_col]
+                .between(
+                    start_date, 
+                    distribution_end_date, 
+                    inclusive='left',
+                    )
+                ]
+            )[value_col].values
+
         sample_values = (all_window_values
-                            [all_window_values[datetime_col].between(distribution_end_date, 
-                                                                        end_date, 
-                                                                        inclusive='left')])[value_col].values
+            [
+                all_window_values
+                [datetime_col]
+                .between(
+                    distribution_end_date, 
+                    end_date, 
+                    inclusive='left'
+                    )
+                ]
+            )[value_col].values
         
         result_dict[datetime_col].append(end_date if label == 'right' else distribution_end_date)
         
@@ -532,24 +549,25 @@ if __name__=='__main__':
 
     # setting up arguments for the rolling calculations
     datetime_compare_rolling_partial = partial(
-                                        datetime_compare_rolling, 
-                                        funcs=[relative_median_delta], 
-                                        s='1d', 
-                                        w_distribution='7d', 
-                                        w_sample='1d', 
-                                        datetime_col='start_date', 
-                                        value_col='dur',
-                                        label='left',
-                                        )
+        datetime_compare_rolling, 
+        funcs=[relative_median_delta], 
+        s='1d', 
+        w_distribution='7d', 
+        w_sample='1d', 
+        datetime_col='start_date', 
+        value_col='dur',
+        label='left',
+        )
 
     daily_rel_transitions = (transitions
-                            [['patient_id', 'transition', 'start_date', 'dur']]
-                            .sort_values('start_date')
-                            .dropna()
-                            .groupby(by=['patient_id', 'transition',])
-                            .parallel_apply(datetime_compare_rolling_partial)
-                        )
+        [['patient_id', 'transition', 'start_date', 'dur']]
+        .sort_values('start_date')
+        .dropna()
+        .groupby(by=['patient_id', 'transition',])
+        .parallel_apply(datetime_compare_rolling_partial)
+        )
     daily_rel_transitions['date'] = pd.to_datetime(daily_rel_transitions['start_date']).dt.date
     daily_rel_transitions = (daily_rel_transitions
-                                .reset_index(drop=False)
-                                .drop(['level_2', 'start_date'], axis=1))
+        .reset_index(drop=False)
+        .drop(['level_2', 'start_date'], axis=1)
+        )

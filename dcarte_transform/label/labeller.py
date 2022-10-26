@@ -162,34 +162,34 @@ class Labeller:
         return_event:bool=False,
         ) -> pd.DataFrame:
         '''
-            This method will return the Agitation labels.
-            If a single day for a paticular ID contains two different
-            labels (usually caused by using :code:`days_either_side`),
-            then both labels are removed.
+        This method will return the Agitation labels.
+        If a single day for a paticular ID contains two different
+        labels (usually caused by using :code:`days_either_side`),
+        then both labels are removed.
 
-            Arguments
-            ---------
+        Arguments
+        ---------
 
-            - days_either_side:  int, optional:
-                The number of days either side of a label that will be given the same label.
-                If these days overlap, if the label is the same then the first will be kept.
-                If they are different, then neither will be kept.
-                Defaults to :code:`0`.
+        - days_either_side:  int, optional:
+            The number of days either side of a label that will be given the same label.
+            If these days overlap, if the label is the same then the first will be kept.
+            If they are different, then neither will be kept.
+            Defaults to :code:`0`.
 
-            - return_event:  bool, optional:
-                This dictates whether another column should be added, with a unique id given to each of the separate
-                UTI events. This allows the user to group the outputted data based on events.
-                Defaults to :code:`False`.
+        - return_event:  bool, optional:
+            This dictates whether another column should be added, with a unique id given to each of the separate
+            UTI events. This allows the user to group the outputted data based on events.
+            Defaults to :code:`False`.
 
 
-            Returns
-            --------
+        Returns
+        --------
 
-            - out:  pd.DataFrame:
-                A dataframe containing the Agitation labels, with the corresponding patient_id and
-                date.
+        - out:  pd.DataFrame:
+            A dataframe containing the Agitation labels, with the corresponding patient_id and
+            date.
 
-            '''
+        '''
 
         df_out = _get_labels_agitation(
             days_either_side=days_either_side, 

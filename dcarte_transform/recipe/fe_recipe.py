@@ -54,10 +54,10 @@ feature_nice_names = {
 
 @dcarte.utils.timer('processing sleep FE data')
 def compute_sleep(
-                    df:pd.DataFrame, 
-                    id_col:str,
-                    datetime_col:str,
-                    ):
+        df:pd.DataFrame, 
+        id_col:str,
+        datetime_col:str,
+        ):
     df = df.copy()
 
     def count_helper(name_to_count):
@@ -67,35 +67,35 @@ def compute_sleep(
         return count
 
     df_grouped = df.groupby(by=[id_col, 
-                        pd.Grouper(key=datetime_col, freq='1d')]).agg({
-                            'snoring': 'sum',
-                            'heart_rate': ['mean', 'std'],
-                            'respiratory_rate': ['mean', 'std'],
-                            'state': [
-                                count_helper('AWAKE'), 
-                                count_helper('DEEP'), 
-                                count_helper('LIGHT'), 
-                                count_helper('REM')
-                                ],
-                            }).reset_index(drop=False)
+        pd.Grouper(key=datetime_col, freq='1d')]).agg({
+            'snoring': 'sum',
+            'heart_rate': ['mean', 'std'],
+            'respiratory_rate': ['mean', 'std'],
+            'state': [
+                count_helper('AWAKE'), 
+                count_helper('DEEP'), 
+                count_helper('LIGHT'), 
+                count_helper('REM')
+                ],
+            }).reset_index(drop=False)
 
     df_grouped.columns = df_grouped.columns.map('|'.join).str.strip('|')
     df_grouped = df_grouped.rename({datetime_col: 'date'}, axis=1)
     df_grouped['date'] = df_grouped['date'].dt.date
 
     dtypes = {
-                id_col: 'category',
-                'date': 'object',
-                'snoring|sum': 'int',
-                'heart_rate|mean': 'float',
-                'heart_rate|std': 'float',
-                'respiratory_rate|mean': 'float', 
-                'respiratory_rate|std': 'float',
-                'state|count_AWAKE': 'int', 
-                'state|count_DEEP': 'int',
-                'state|count_LIGHT': 'int',
-                'state|count_REM': 'int',
-                }
+        id_col: 'category',
+        'date': 'object',
+        'snoring|sum': 'int',
+        'heart_rate|mean': 'float',
+        'heart_rate|std': 'float',
+        'respiratory_rate|mean': 'float', 
+        'respiratory_rate|std': 'float',
+        'state|count_AWAKE': 'int', 
+        'state|count_DEEP': 'int',
+        'state|count_LIGHT': 'int',
+        'state|count_REM': 'int',
+        }
 
     return df_grouped.astype(dtypes)
 
@@ -110,21 +110,21 @@ def compute_sleep(
 
 @dcarte.utils.timer('processing relative_transition data')
 def compute_relative_transitions(
-                                    df:pd.DataFrame, 
-                                    funcs:typing.Union[typing.List[typing.Callable], typing.Callable],
-                                    id_col:str,
-                                    transition_col:str,
-                                    datetime_col:str,
-                                    duration_col:str,
-                                    sink_col:str,
-                                    source_col:str,
-                                    filter_sink:typing.Union[None,typing.List[str]]=None, 
-                                    filter_source:typing.Union[None,typing.List[str]]=None,
-                                    transition_time_upper_bound:float=5*60,
-                                    s='1d', 
-                                    w_distribution='7d', 
-                                    w_sample='1d', 
-                                    ):
+        df:pd.DataFrame, 
+        funcs:typing.Union[typing.List[typing.Callable], typing.Callable],
+        id_col:str,
+        transition_col:str,
+        datetime_col:str,
+        duration_col:str,
+        sink_col:str,
+        source_col:str,
+        filter_sink:typing.Union[None,typing.List[str]]=None, 
+        filter_source:typing.Union[None,typing.List[str]]=None,
+        transition_time_upper_bound:float=5*60,
+        s='1d', 
+        w_distribution='7d', 
+        w_sample='1d', 
+        ):
     df = df.copy()
 
     # filtering on transition time upper bound
@@ -156,45 +156,47 @@ def compute_relative_transitions(
 
     # setting up arguments for the rolling calculations
     datetime_compare_rolling_partial = functools.partial(
-                                        datetime_compare_rolling, 
-                                        funcs=funcs, 
-                                        s=s, 
-                                        w_distribution=w_distribution, 
-                                        w_sample=w_sample, 
-                                        datetime_col=datetime_col, 
-                                        value_col=duration_col,
-                                        label='left',
-                                        )
+        datetime_compare_rolling, 
+        funcs=funcs, 
+        s=s, 
+        w_distribution=w_distribution, 
+        w_sample=w_sample, 
+        datetime_col=datetime_col, 
+        value_col=duration_col,
+        label='left',
+        )
 
     # running calculations to calculate the func over each w_sample of an events
     # and the w_distribution of the same events.
     # if func is relative mean delta then this will calculate the change in mean 
     # of an event from one day to the past week.
-    daily_rel_transitions = (df
-                            [[id_col, transition_col, source_col, sink_col, datetime_col, duration_col]]
-                            .sort_values(datetime_col)
-                            .dropna()
-                            .groupby(by=[id_col, source_col, sink_col, transition_col,])
-                            .parallel_apply(datetime_compare_rolling_partial)
-                            #.apply(datetime_compare_rolling_partial)
-                        )
+    daily_rel_transitions = (
+        df
+        [[id_col, transition_col, source_col, sink_col, datetime_col, duration_col]]
+        .sort_values(datetime_col)
+        .dropna()
+        .groupby(by=[id_col, source_col, sink_col, transition_col,])
+        .parallel_apply(datetime_compare_rolling_partial)
+        #.apply(datetime_compare_rolling_partial)
+        )
 
     # formatting
     daily_rel_transitions[datetime_col] = pd.to_datetime(daily_rel_transitions[datetime_col]).dt.date
-    daily_rel_transitions = (daily_rel_transitions
-                                .reset_index(drop=False)
-                                .drop(['level_4',], axis=1)
-                                .rename({datetime_col: 'date'}, axis=1)
-                                .dropna()
-                                )
+    daily_rel_transitions = (
+        daily_rel_transitions
+        .reset_index(drop=False)
+        .drop(['level_4',], axis=1)
+        .rename({datetime_col: 'date'}, axis=1)
+        .dropna()
+        )
 
     dtypes = {
-                id_col: 'category',
-                transition_col: 'category',
-                'date': 'object',
-                'source': 'category',
-                'sink': 'category',
-                }
+        id_col: 'category',
+        transition_col: 'category',
+        'date': 'object',
+        'source': 'category',
+        'sink': 'category',
+        }
 
     return daily_rel_transitions.astype(dtypes)
 
@@ -206,28 +208,30 @@ def compute_relative_transitions(
 
 @dcarte.utils.timer('processing location frequency statistics')
 def compute_location_time_stats(
-                                    df:pd.DataFrame, 
-                                    location_name:str, 
-                                    id_col:str,
-                                    location_col:str,
-                                    datetime_col:str,
-                                    time_range:typing.Union[None, typing.List[str]]=None, 
-                                    rolling_window:int=3,
-                                    name:typing.Union[str, None]=None,
-                                    ):
+        df:pd.DataFrame, 
+        location_name:str, 
+        id_col:str,
+        location_col:str,
+        datetime_col:str,
+        time_range:typing.Union[None, typing.List[str]]=None, 
+        rolling_window:int=3,
+        name:typing.Union[str, None]=None,
+        ):
     df = df.copy()
 
     if name is None:
         name = f'{location_name}'.lower()
 
     # computing the location frequency for the given location
-    df = compute_daily_location_freq(df, 
-                                        location=location_name, 
-                                        id_col=id_col,
-                                        location_col=location_col,
-                                        datetime_col=datetime_col,
-                                        time_range=time_range, 
-                                        name=f'{name}_freq')
+    df = compute_daily_location_freq(
+        df, 
+        location=location_name, 
+        id_col=id_col,
+        location_col=location_col,
+        datetime_col=datetime_col,
+        time_range=time_range, 
+        name=f'{name}_freq',
+        )
 
     # computing moving average
     df[f'{name}_freq_ma'] = (df
@@ -236,18 +240,19 @@ def compute_location_time_stats(
                                 .mean())
 
     # computing the delta in the moving average
-    df[f'{name}_freq_ma_delta'] = compute_delta(df[f'{name}_freq_ma'].values,
-                                                            pad=True
-                                                            )
+    df[f'{name}_freq_ma_delta'] = compute_delta(
+        df[f'{name}_freq_ma'].values,
+        pad=True
+        )
 
     # formatting
     dtypes = {
-                id_col: 'category',
-                'date': 'object',
-                f'{name}_freq': 'int',
-                f'{name}_freq_ma': 'float',
-                f'{name}_freq_ma_delta': 'float',
-                }
+        id_col: 'category',
+        'date': 'object',
+        f'{name}_freq': 'int',
+        f'{name}_freq_ma': 'float',
+        f'{name}_freq_ma_delta': 'float',
+        }
 
     return df.astype(dtypes)
 
@@ -260,28 +265,29 @@ def compute_location_time_stats(
 
 @dcarte.utils.timer('processing entropy')
 def compute_entropy_data(
-                            df:pd.DataFrame, 
-                            freq:str,
-                            id_col:str,
-                            datetime_col:str,
-                            location_col:str,
-                            ):
+        df:pd.DataFrame, 
+        freq:str,
+        id_col:str,
+        datetime_col:str,
+        location_col:str,
+        ):
     df = df.copy()
 
     assert freq in ['day','week'], "Please ensure that freq is a string, either 'day' or 'week'"
-    entropy_df = compute_entropy_rate(df, 
-                                        freq=freq, 
-                                        id_col=id_col, 
-                                        datetime_col=datetime_col, 
-                                        location_col=location_col,
-                                        )
+    entropy_df = compute_entropy_rate(
+        df, 
+        freq=freq, 
+        id_col=id_col, 
+        datetime_col=datetime_col, 
+        location_col=location_col,
+        )
     entropy_col_name = 'daily_entropy' if freq == 'day' else 'weekly_entropy'
 
     dtypes = {
-                id_col: 'category',
-                'date': 'object',
-                entropy_col_name: 'float',
-                }
+        id_col: 'category',
+        'date': 'object',
+        entropy_col_name: 'float',
+        }
 
     return entropy_df.astype(dtypes)
 
@@ -299,10 +305,10 @@ def compute_entropy_data(
 def process_sleep(self):
     df = self.datasets['sleep']
     sleep_stats = compute_sleep(
-                            df, 
-                            id_col='patient_id', 
-                            datetime_col='start_date',
-                            )
+        df, 
+        id_col='patient_id', 
+        datetime_col='start_date',
+        )
     return sleep_stats
 
 
@@ -327,40 +333,40 @@ def process_relative_transitions(self):
 
 
     bathroom_relative_transitions = compute_relative_transitions(
-                                                        df=df,
-                                                        funcs=[
-                                                                relative_mean_delta,
-                                                                relative_std_delta
-                                                                ],
-                                                        id_col='patient_id',
-                                                        transition_col='transition',
-                                                        datetime_col='start_date',
-                                                        duration_col='dur',
-                                                        sink_col='sink',
-                                                        source_col='source',
-                                                        filter_sink='Bathroom',
-                                                        filter_source=None,
-                                                        transition_time_upper_bound=5*60,
-                                                        s='1d',
-                                                        w_distribution='7d',
-                                                        w_sample='1d',
-                                                        )
+        df=df,
+        funcs=[
+                relative_mean_delta,
+                relative_std_delta
+                ],
+        id_col='patient_id',
+        transition_col='transition',
+        datetime_col='start_date',
+        duration_col='dur',
+        sink_col='sink',
+        source_col='source',
+        filter_sink='Bathroom',
+        filter_source=None,
+        transition_time_upper_bound=5*60,
+        s='1d',
+        w_distribution='7d',
+        w_sample='1d',
+        )
 
 
     bathroom_relative_transitions = (bathroom_relative_transitions
-                                            .groupby(by=['patient_id', 'sink', 'date'])
-                                            .mean()
-                                            .reset_index(drop=False)
-                                            .dropna()
-                                            .drop(['sink'], axis=1)
-                                            .rename(
-                                                {
-                                                    'relative_mean_delta_relative_delta': 'bathroom_relative_transition_time_delta_mean',
-                                                    'relative_std_delta_relative_delta': 'bathroom_relative_transition_time_delta_std',
-                                                },
-                                                axis=1
-                                                )
-                                            )
+        .groupby(by=['patient_id', 'sink', 'date'])
+        .mean()
+        .reset_index(drop=False)
+        .dropna()
+        .drop(['sink'], axis=1)
+        .rename(
+            {
+                'relative_mean_delta_relative_delta': 'bathroom_relative_transition_time_delta_mean',
+                'relative_std_delta_relative_delta': 'bathroom_relative_transition_time_delta_std',
+            },
+            axis=1
+            )
+        )
     
     return bathroom_relative_transitions
 
@@ -372,15 +378,15 @@ def process_bathroom_nighttime_stats(self):
 
     df = self.datasets['motion']
     bathroom_freq_nighttime = compute_location_time_stats(
-                                                            df, 
-                                                            location_name='Bathroom', 
-                                                            id_col='patient_id',
-                                                            location_col='location_name',
-                                                            datetime_col='start_date',
-                                                            time_range=['20:00', '08:00'],
-                                                            rolling_window=3,
-                                                            name='bathroom_nighttime',
-                                                            )
+        df, 
+        location_name='Bathroom', 
+        id_col='patient_id',
+        location_col='location_name',
+        datetime_col='start_date',
+        time_range=['20:00', '08:00'],
+        rolling_window=3,
+        name='bathroom_nighttime',
+        )
     return bathroom_freq_nighttime
 
 
@@ -391,15 +397,15 @@ def process_bathroom_daytime_stats(self):
 
     df = self.datasets['motion']
     bathroom_freq_daytime = compute_location_time_stats(
-                                                            df, 
-                                                            location_name='Bathroom', 
-                                                            id_col='patient_id',
-                                                            location_col='location_name',
-                                                            datetime_col='start_date',
-                                                            time_range=['08:00', '20:00'],
-                                                            rolling_window=3,
-                                                            name='bathroom_daytime',
-                                                            )
+        df, 
+        location_name='Bathroom', 
+        id_col='patient_id',
+        location_col='location_name',
+        datetime_col='start_date',
+        time_range=['08:00', '20:00'],
+        rolling_window=3,
+        name='bathroom_daytime',
+        )
     return bathroom_freq_daytime
 
 
@@ -410,12 +416,12 @@ def process_entropy_daily(self):
     
     df = self.datasets['motion']
     entropy_daily = compute_entropy_data(
-                                            df, 
-                                            freq='day',
-                                            id_col='patient_id', 
-                                            datetime_col='start_date',
-                                            location_col='location_name'
-                                            )
+        df, 
+        freq='day',
+        id_col='patient_id', 
+        datetime_col='start_date',
+        location_col='location_name'
+        )
     
     return entropy_daily
 
@@ -439,11 +445,11 @@ def process_fe_data(self):
     fe_data = pd.merge(left=fe_data, right=bathroom_relative_transitions_fe, on=['patient_id', 'date'], how='outer')
 
     fe_data = label_number_previous(
-                                                fe_data, 
-                                                id_col='patient_id',
-                                                datetime_col='date',
-                                                day_delay=7,
-                                                )
+        fe_data, 
+        id_col='patient_id',
+        datetime_col='date',
+        day_delay=7,
+        )
 
     return fe_data
 
@@ -454,17 +460,17 @@ def process_raw_and_fe_data(self):
     fe_data = self.datasets['all_fe']
 
     location_freq = (motion
-                    .groupby(by=[
-                                    'patient_id', 
-                                    pd.Grouper(key='start_date', freq='1d'), 
-                                    'location_name',
-                                    ])
-                    .size()
-                    .to_frame(name = 'freq')
-                    .unstack()
-                    .reset_index()
-                    .rename({'start_date':'date'}, axis=1)
-                    )
+        .groupby(by=[
+            'patient_id', 
+            pd.Grouper(key='start_date', freq='1d'), 
+            'location_name',
+            ])
+        .size()
+        .to_frame(name = 'freq')
+        .unstack()
+        .reset_index()
+        .rename({'start_date':'date'}, axis=1)
+        )
     location_freq.columns = location_freq.columns.map('|'.join).str.strip('|')
     location_freq['date'] = pd.to_datetime(location_freq['date']).dt.date
 
@@ -472,11 +478,11 @@ def process_raw_and_fe_data(self):
     raw_fe_data = raw_fe_data.drop('previous_uti', axis=1)
 
     raw_fe_data = label_number_previous(
-                                                raw_fe_data, 
-                                                id_col='patient_id',
-                                                datetime_col='date',
-                                                day_delay=7,
-                                                )
+        raw_fe_data, 
+        id_col='patient_id',
+        datetime_col='date',
+        day_delay=7,
+        )
 
 
     return raw_fe_data
@@ -489,25 +495,25 @@ def process_core_raw_and_fe_data(self):
     fe_data = self.datasets['all_fe']
 
     motion = motion[motion['location_name'].isin([
-                                                    'Bathroom', 
-                                                    'Bedroom', 
-                                                    'Hallway',
-                                                    'Kitchen', 
-                                                    'Lounge', 
-                                                    ])]
+        'Bathroom', 
+        'Bedroom', 
+        'Hallway',
+        'Kitchen', 
+        'Lounge', 
+        ])]
 
     location_freq = (motion
-                    .groupby(by=[
-                                    'patient_id', 
-                                    pd.Grouper(key='start_date', freq='1d'), 
-                                    'location_name',
-                                    ])
-                    .size()
-                    .to_frame(name = 'freq')
-                    .unstack()
-                    .reset_index()
-                    .rename({'start_date':'date'}, axis=1)
-                    )
+        .groupby(by=[
+            'patient_id', 
+            pd.Grouper(key='start_date', freq='1d'), 
+            'location_name',
+            ])
+        .size()
+        .to_frame(name = 'freq')
+        .unstack()
+        .reset_index()
+        .rename({'start_date':'date'}, axis=1)
+        )
     location_freq.columns = location_freq.columns.map('|'.join).str.strip('|')
     location_freq['date'] = pd.to_datetime(location_freq['date']).dt.date
 
@@ -515,11 +521,11 @@ def process_core_raw_and_fe_data(self):
     
     core_raw_fe_data = core_raw_fe_data.drop('previous_uti', axis=1)
     core_raw_fe_data = label_number_previous(
-                                                core_raw_fe_data, 
-                                                id_col='patient_id',
-                                                datetime_col='date',
-                                                day_delay=21,
-                                                )
+        core_raw_fe_data, 
+        id_col='patient_id',
+        datetime_col='date',
+        day_delay=21,
+        )
 
     return core_raw_fe_data
 
@@ -543,111 +549,128 @@ def create_feature_engineering_datasets():
     if not 'TIHM_AND_MINDER' in dcarte.domains().columns:
         create_tihm_and_minder_datasets()
 
-    parent_datasets = {'sleep_fe': [['sleep', 'base']],
-                        'bathroom_relative_transitions_fe':[['transitions', 'tihm_and_minder']],
-                        'bathroom_nighttime_fe': [['motion', 'tihm_and_minder']],
-                        'bathroom_daytime_fe': [['motion', 'tihm_and_minder']],
-                        'entropy_daily_fe': [['motion', 'tihm_and_minder']],
-                        'all_fe': [['sleep_fe', 'feature_engineering'],
-                                ['bathroom_relative_transitions_fe', 'feature_engineering'],
-                                ['bathroom_nighttime_fe', 'feature_engineering'],
-                                ['bathroom_daytime_fe', 'feature_engineering'],
-                                ['entropy_daily_fe', 'feature_engineering'],
-                                ],
-                        'all_raw_fe': [['motion', 'tihm_and_minder'],
-                                        ['all_fe', 'feature_engineering']
-                                        ],
-                        'all_core_raw_fe': [['motion', 'tihm_and_minder'],
-                                            ['all_fe', 'feature_engineering']
-                                            ],
-                        }
+    parent_datasets = {
+        'sleep_fe': [['sleep', 'base']],
+        'bathroom_relative_transitions_fe':[['transitions', 'tihm_and_minder']],
+        'bathroom_nighttime_fe': [['motion', 'tihm_and_minder']],
+        'bathroom_daytime_fe': [['motion', 'tihm_and_minder']],
+        'entropy_daily_fe': [['motion', 'tihm_and_minder']],
+        'all_fe': [['sleep_fe', 'feature_engineering'],
+                ['bathroom_relative_transitions_fe', 'feature_engineering'],
+                ['bathroom_nighttime_fe', 'feature_engineering'],
+                ['bathroom_daytime_fe', 'feature_engineering'],
+                ['entropy_daily_fe', 'feature_engineering'],
+                ],
+        'all_raw_fe': [['motion', 'tihm_and_minder'],
+                        ['all_fe', 'feature_engineering']
+                        ],
+        'all_core_raw_fe': [['motion', 'tihm_and_minder'],
+                            ['all_fe', 'feature_engineering']
+                            ],
+        }
 
     module_path = __file__
 
     print('processing sleep FE')
-    LocalDataset(dataset_name='sleep_fe',
-                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['sleep_fe']},
-                 pipeline=['process_sleep'],
-                 domain=domain,
-                 module=module,
-                 module_path=module_path,
-                 reload=True,
-                 dependencies=parent_datasets['sleep_fe'])
+    LocalDataset(
+        dataset_name='sleep_fe',
+        datasets={d[0]: dcarte.load(*d) for d in parent_datasets['sleep_fe']},
+        pipeline=['process_sleep'],
+        domain=domain,
+        module=module,
+        module_path=module_path,
+        reload=True,
+        dependencies=parent_datasets['sleep_fe'],
+        )
 
     print('processing night time bathroom FE')
-    LocalDataset(dataset_name='bathroom_nighttime_fe',
-                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['bathroom_nighttime_fe']},
-                 pipeline=['process_bathroom_nighttime_stats'],
-                 domain=domain,
-                 module=module,
-                 reload=True,
-                 module_path=module_path,
-                 dependencies=parent_datasets['bathroom_nighttime_fe'])
+    LocalDataset(
+        dataset_name='bathroom_nighttime_fe',
+        datasets={d[0]: dcarte.load(*d) for d in parent_datasets['bathroom_nighttime_fe']},
+        pipeline=['process_bathroom_nighttime_stats'],
+        domain=domain,
+        module=module,
+        reload=True,
+        module_path=module_path,
+        dependencies=parent_datasets['bathroom_nighttime_fe'],
+        )
 
     print('processing day time bathroom FE')
-    LocalDataset(dataset_name='bathroom_daytime_fe',
-                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['bathroom_daytime_fe']},
-                 pipeline=['process_bathroom_daytime_stats'],
-                 domain=domain,
-                 module=module,
-                 reload=True,
-                 module_path=module_path,
-                 dependencies=parent_datasets['bathroom_daytime_fe'])
+    LocalDataset(
+        dataset_name='bathroom_daytime_fe',
+        datasets={d[0]: dcarte.load(*d) for d in parent_datasets['bathroom_daytime_fe']},
+        pipeline=['process_bathroom_daytime_stats'],
+        domain=domain,
+        module=module,
+        reload=True,
+        module_path=module_path,
+        dependencies=parent_datasets['bathroom_daytime_fe'],
+        )
 
     print('processing daily entropy FE')
-    LocalDataset(dataset_name='entropy_daily_fe',
-                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['entropy_daily_fe']},
-                 pipeline=['process_entropy_daily'],
-                 domain=domain,
-                 module=module,
-                 reload=True,
-                 module_path=module_path,
-                 dependencies=parent_datasets['entropy_daily_fe'])
+    LocalDataset(
+        dataset_name='entropy_daily_fe',
+        datasets={d[0]: dcarte.load(*d) for d in parent_datasets['entropy_daily_fe']},
+        pipeline=['process_entropy_daily'],
+        domain=domain,
+        module=module,
+        reload=True,
+        module_path=module_path,
+        dependencies=parent_datasets['entropy_daily_fe'],
+        )
 
 
     print('processing bathroom transition FE')
-    LocalDataset(dataset_name='bathroom_relative_transitions_fe',
-                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['bathroom_relative_transitions_fe']},
-                 pipeline=['process_relative_transitions'],
-                 domain=domain,
-                 module=module,
-                 reload=True,
-                 module_path=module_path,
-                 dependencies=parent_datasets['bathroom_relative_transitions_fe'])
+    LocalDataset(
+        dataset_name='bathroom_relative_transitions_fe',
+        datasets={d[0]: dcarte.load(*d) for d in parent_datasets['bathroom_relative_transitions_fe']},
+        pipeline=['process_relative_transitions'],
+        domain=domain,
+        module=module,
+        reload=True,
+        module_path=module_path,
+        dependencies=parent_datasets['bathroom_relative_transitions_fe'],
+        )
 
 
 
     print('processing all FE')
-    LocalDataset(dataset_name='all_fe',
-                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['all_fe']},
-                 pipeline=['process_fe_data'],
-                 domain=domain,
-                 module=module,
-                 module_path=module_path,
-                 reload=True,
-                 dependencies=parent_datasets['all_fe'])
+    LocalDataset(
+        dataset_name='all_fe',
+        datasets={d[0]: dcarte.load(*d) for d in parent_datasets['all_fe']},
+        pipeline=['process_fe_data'],
+        domain=domain,
+        module=module,
+        module_path=module_path,
+        reload=True,
+        dependencies=parent_datasets['all_fe'],
+        )
 
 
     print('processing all raw and FE')
-    LocalDataset(dataset_name='all_raw_fe',
-                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['all_raw_fe']},
-                 pipeline=['process_raw_and_fe_data'],
-                 domain=domain,
-                 module=module,
-                 module_path=module_path,
-                 reload=True,
-                 dependencies=parent_datasets['all_raw_fe'])
+    LocalDataset(
+        dataset_name='all_raw_fe',
+        datasets={d[0]: dcarte.load(*d) for d in parent_datasets['all_raw_fe']},
+        pipeline=['process_raw_and_fe_data'],
+        domain=domain,
+        module=module,
+        module_path=module_path,
+        reload=True,
+        dependencies=parent_datasets['all_raw_fe'],
+        )
 
 
     print('processing all core raw and FE')
-    LocalDataset(dataset_name='all_core_raw_fe',
-                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['all_core_raw_fe']},
-                 pipeline=['process_core_raw_and_fe_data'],
-                 domain=domain,
-                 module=module,
-                 module_path=module_path,
-                 reload=True,
-                 dependencies=parent_datasets['all_core_raw_fe'])
+    LocalDataset(
+        dataset_name='all_core_raw_fe',
+        datasets={d[0]: dcarte.load(*d) for d in parent_datasets['all_core_raw_fe']},
+        pipeline=['process_core_raw_and_fe_data'],
+        domain=domain,
+        module=module,
+        module_path=module_path,
+        reload=True,
+        dependencies=parent_datasets['all_core_raw_fe'],
+        )
 
 
 

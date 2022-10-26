@@ -9,11 +9,11 @@ import numpy as np
 
 # package wide styling for progress bars
 tqdm_style = {
-                #'ascii':" ▖▘▝▗▚▞▉", 
-                'ascii':"▏▎▍▋▊▉",  
-                #'colour':'black',
-                'dynamic_ncols': True,
-                }
+    #'ascii':" ▖▘▝▗▚▞▉", 
+    'ascii':"▏▎▍▋▊▉",  
+    #'colour':'black',
+    'dynamic_ncols': True,
+    }
 
 
 
@@ -35,10 +35,10 @@ class TQDMProgressBarPandarallelGenerator:
             def __init__(self, maxs: typing.List[int], show: bool) -> None:
                 total = np.sum(maxs)
                 self.tqdm_progress = tqdm.tqdm(
-                                                total=total, 
-                                                disable=not show, 
-                                                **tqdm_kwargs,
-                                                )
+                    total=total, 
+                    disable=not show, 
+                    **tqdm_kwargs,
+                    )
                 self.value = 0
             def update(self, values: typing.List[int]) -> None:
                 """Update a bar value.

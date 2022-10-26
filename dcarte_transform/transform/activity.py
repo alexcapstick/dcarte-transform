@@ -136,13 +136,14 @@ def compute_entropy_rate_from_sequence(sequence):
 
 
 @dcarte.utils.timer('calculating entropy rate')
-def compute_entropy_rate(df: pd.DataFrame, 
-                        id_col:str='patient_id',
-                        datetime_col:str='start_date',
-                        location_col:str='location_name',
-                        sensors:typing.Union[typing.List[str], str] = 'all', 
-                        freq:typing.Union[typing.List[str], str]=['day', 'week']) -> typing.Union[pd.DataFrame, 
-                                                                                        typing.List[pd.DataFrame]]:
+def compute_entropy_rate(
+    df: pd.DataFrame, 
+    id_col:str='patient_id',
+    datetime_col:str='start_date',
+    location_col:str='location_name',
+    sensors:typing.Union[typing.List[str], str] = 'all', 
+    freq:typing.Union[typing.List[str], str]=['day', 'week']
+    ) -> typing.Union[pd.DataFrame, typing.List[pd.DataFrame]]:
     '''
     This function allows the user to return a pandas.DataFrame with the entropy rate calculated
     for every week or day. The dataframe must contain :code:`[id_col]`, and columns containing the 
@@ -233,10 +234,10 @@ def compute_entropy_rate(df: pd.DataFrame,
 
         daily_entropy = df[[id_col, datetime_col, location_col]].copy()
         daily_entropy = (daily_entropy
-                            .groupby(by=[id_col, pd.Grouper(key=datetime_col, freq='1d', label='left')])
-                            .parallel_apply(lambda x: compute_entropy_rate_from_sequence(x[location_col].values))
-                            .reset_index()
-                            )
+            .groupby(by=[id_col, pd.Grouper(key=datetime_col, freq='1d', label='left')])
+            .parallel_apply(lambda x: compute_entropy_rate_from_sequence(x[location_col].values))
+            .reset_index()
+            )
         daily_entropy.columns = [id_col, 'date', 'daily_entropy']
         daily_entropy['date'] = daily_entropy['date'].dt.date
         outputs.append(daily_entropy)
@@ -250,10 +251,10 @@ def compute_entropy_rate(df: pd.DataFrame,
 
         weekly_entropy = df[[id_col, datetime_col, location_col]].copy()
         weekly_entropy = (weekly_entropy
-                            .groupby(by=[id_col, pd.Grouper(key=datetime_col, freq='W-SUN', label='left')])
-                            .parallel_apply(lambda x: compute_entropy_rate_from_sequence(x[location_col].values))
-                            .reset_index()
-                            )
+            .groupby(by=[id_col, pd.Grouper(key=datetime_col, freq='W-SUN', label='left')])
+            .parallel_apply(lambda x: compute_entropy_rate_from_sequence(x[location_col].values))
+            .reset_index()
+            )
         weekly_entropy.columns = [id_col, 'date', 'weekly_entropy']
         weekly_entropy['date'] = weekly_entropy['date'].dt.date
         outputs.append(weekly_entropy)
@@ -269,13 +270,15 @@ def compute_entropy_rate(df: pd.DataFrame,
 
 
 @dcarte.utils.timer('calculating daily location frequency')
-def compute_daily_location_freq(df:pd.DataFrame, 
-                            location:str, 
-                            id_col:str='patient_id',
-                            location_col:str='location_name', 
-                            datetime_col:str='start_date', 
-                            time_range:typing.Union[None, typing.List[str]]=None, 
-                            name:typing.Union[None, str]=None)->pd.DataFrame:
+def compute_daily_location_freq(
+    df:pd.DataFrame, 
+    location:str, 
+    id_col:str='patient_id',
+    location_col:str='location_name', 
+    datetime_col:str='start_date', 
+    time_range:typing.Union[None, typing.List[str]]=None, 
+    name:typing.Union[None, str]=None
+    ) -> pd.DataFrame:
     '''
     This function allows you to calculate the frequency of visits to 
     a given location during a given time range, aggregated daily.
@@ -294,9 +297,6 @@ def compute_daily_location_freq(df:pd.DataFrame,
         >>> compute_daily_location_freq(data, 'bathroom1', time_range=['20:00','08:00'])
 
 
-
-
-    
     Arguments
     ---------
 

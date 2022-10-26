@@ -20,34 +20,34 @@ except:
 
 def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     '''
-        This function will return the Agitation labels.
-        If a single day for a paticular ID contains two different
-        labels (usually caused by using :code:`days_either_side`),
-        then both labels are removed.
+    This function will return the Agitation labels.
+    If a single day for a paticular ID contains two different
+    labels (usually caused by using :code:`days_either_side`),
+    then both labels are removed.
 
-        Arguments
-        ---------
+    Arguments
+    ---------
 
-        - days_either_side:  int, optional:
-            The number of days either side of a label that will be given the same label.
-            If these days overlap, if the label is the same then the first will be kept.
-            If they are different, then neither will be kept.
-            Defaults to :code:`0`.
+    - days_either_side:  int, optional:
+        The number of days either side of a label that will be given the same label.
+        If these days overlap, if the label is the same then the first will be kept.
+        If they are different, then neither will be kept.
+        Defaults to :code:`0`.
 
-        - return_event:  bool, optional:
-            This dictates whether another column should be added, with a unique id given to each of the separate
-            UTI events. This allows the user to group the outputted data based on events.
-            Defaults to :code:`False`.
+    - return_event:  bool, optional:
+        This dictates whether another column should be added, with a unique id given to each of the separate
+        UTI events. This allows the user to group the outputted data based on events.
+        Defaults to :code:`False`.
 
 
-        Returns
-        --------
+    Returns
+    --------
 
-        - out:  pd.DataFrame` :
-            A dataframe containing the Agitation labels, with the corresponding patient_id and
-            date.
+    - out:  pd.DataFrame` :
+        A dataframe containing the Agitation labels, with the corresponding patient_id and
+        date.
 
-        '''
+    '''
 
     symptoms = ['Agitation']  # , 'Anxiety', 'Irritability', 'Depressed mood']
 
@@ -111,8 +111,13 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
 
 
 @dcarte.utils.timer('mapping Agitation labels')
-def label(df:pd.DataFrame, id_col:str='patient_id', datetime_col:str='start_date', 
-            days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
+def label(
+    df:pd.DataFrame, 
+    id_col:str='patient_id', 
+    datetime_col:str='start_date', 
+    days_either_side:int=0, 
+    return_event:bool=False,
+    ) -> pd.DataFrame:
     '''
     This function will label the input dataframe based on the agitation data 
     in :code:`behaviour`.

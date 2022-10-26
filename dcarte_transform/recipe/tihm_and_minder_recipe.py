@@ -56,24 +56,26 @@ def create_tihm_and_minder_datasets():
     
     module_path = __file__
     print('adding Tihm to motion data')
-    LocalDataset(dataset_name='motion',
-                 datasets={d[1]: dcarte.load(*d) for d in parent_datasets['motion']},
-                 pipeline=['process_add_tihm_motion'], 
-                 domain=domain,
-                 module=module,
-                 module_path=module_path,
-                 reload=True,
-                 dependencies=parent_datasets['motion'])
+    LocalDataset(
+        dataset_name='motion',
+        datasets={d[1]: dcarte.load(*d) for d in parent_datasets['motion']},
+        pipeline=['process_add_tihm_motion'], 
+        domain=domain,
+        module=module,
+        module_path=module_path,
+        reload=True,
+        dependencies=parent_datasets['motion'])
 
     print('adding Tihm to transitions data')
-    LocalDataset(dataset_name='transitions',
-                 datasets={d[0]: dcarte.load(*d) for d in parent_datasets['transitions']},
-                 pipeline=['process_add_tihm_transitions'], 
-                 domain=domain,
-                 module=module,
-                 module_path=module_path,
-                 reload=True,
-                 dependencies=parent_datasets['transitions'])
+    LocalDataset(
+        dataset_name='transitions',
+        datasets={d[0]: dcarte.load(*d) for d in parent_datasets['transitions']},
+        pipeline=['process_add_tihm_transitions'], 
+        domain=domain,
+        module=module,
+        module_path=module_path,
+        reload=True,
+        dependencies=parent_datasets['transitions'])
 
 
 

@@ -13,9 +13,10 @@ from .base_splitting import train_test_group_split
 # information that is useful for our context.
 class StratifiedEventKFold(StratifiedGroupKFold):
     def __init__(self, 
-                    n_splits:int=5, 
-                    shuffle:bool=False, 
-                    random_state:typing.Union[None, int]=None):
+        n_splits:int=5, 
+        shuffle:bool=False, 
+        random_state:typing.Union[None, int]=None
+        ):
         '''
         This function allows you to split the dataset, such that the proportion
         of labels across the training and testing sets are as equal as possible,
@@ -54,9 +55,11 @@ class StratifiedEventKFold(StratifiedGroupKFold):
         
         '''
 
-        super(StratifiedEventKFold, self).__init__(n_splits=n_splits, 
-                                                    shuffle=shuffle,
-                                                    random_state=random_state)
+        super(StratifiedEventKFold, self).__init__(
+            n_splits=n_splits, 
+            shuffle=shuffle,
+            random_state=random_state,
+            )
 
         return
     
@@ -101,14 +104,15 @@ class StratifiedEventKFold(StratifiedGroupKFold):
         
     
 
-def train_test_event_split(*arrays, 
-                            y,
-                            event, 
-                            test_size:float=None, 
-                            train_size:float=None, 
-                            random_state:typing.Union[None, int]=None, 
-                            shuffle:bool=True,
-                            ):
+def train_test_event_split(
+    *arrays, 
+    y,
+    event, 
+    test_size:float=None, 
+    train_size:float=None, 
+    random_state:typing.Union[None, int]=None, 
+    shuffle:bool=True,
+    ):
     '''
     This function returns the train and test data given the
     split and the data. A single :code:`event` will not be in
@@ -181,14 +185,15 @@ def train_test_event_split(*arrays,
     
     '''
 
-    outputs = train_test_group_split(*arrays, 
-                                    y=y,
-                                    group=event, 
-                                    test_size=test_size, 
-                                    train_size=train_size, 
-                                    random_state=random_state, 
-                                    shuffle=shuffle,
-                                    )
+    outputs = train_test_group_split(
+        *arrays, 
+        y=y,
+        group=event, 
+        test_size=test_size, 
+        train_size=train_size, 
+        random_state=random_state, 
+        shuffle=shuffle,
+        )
     return outputs
 
 
