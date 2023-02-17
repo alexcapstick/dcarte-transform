@@ -266,6 +266,40 @@ def compute_entropy_rate(
 
 
 
+def fill_from_first_occurence(df, subset=None, value=0):
+    '''
+    This function fills each column in the subset 
+    in a dataframe with the value provided, from 
+    the first occurence 
+    
+    This assumes that the dataframe is already 
+    sorted in the order in which you want to fill.
+
+
+    '''
+    
+    assert isinstance(df, pd.DataFrame), 'df must be a pandas dataframe'
+
+    df = df.copy()
+
+    if subset is None:
+        subset = df.columns
+    elif type(subset) == str:
+        subset = [subset]
+    elif type(subset) != list:
+        raise ValueError('subset must be a list of strings')
+
+    for col in subset:
+        first_index = df[col].first_valid_index()
+        if first_index == None:
+            continue
+        df_temp = df.loc[first_index:, col]
+        df_temp = df_temp.fillna(value)
+        df.loc[first_index:, col] = df_temp
+
+    return df
+
+
 
 
 
