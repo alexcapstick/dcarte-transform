@@ -6,9 +6,14 @@ import pandas as pd
 import numpy as np
 import typing
 import functools
-from pandarallel import pandarallel as pandarallel_
 import dcarte
 from dcarte.local import LocalDataset
+
+try:
+    from pandarallel import pandarallel as pandarallel_
+    pandarallel_import_error = False
+except ImportError:
+    pandarallel_import_error = True
 
 try:
     from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
@@ -159,6 +164,12 @@ def compute_relative_transitions(
     w_distribution="7d",
     w_sample="1d",
 ):
+
+    if pandarallel_import_error:
+        raise ImportError(
+            "pandarallel is not installed. Please install it to use this function."
+        )
+
     df = df.copy()
 
     # filtering on transition time upper bound
