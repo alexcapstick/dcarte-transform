@@ -167,7 +167,7 @@ def compute_relative_transitions(
 
     if pandarallel_import_error:
         raise ImportError(
-            "pandarallel is not installed. Please install it to use this function."
+            "pandarallel is not installed. Please install pandarallel>=1.6, to use this function."
         )
 
     df = df.copy()

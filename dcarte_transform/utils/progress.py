@@ -30,9 +30,8 @@ class TQDMProgressBarPandarallelGenerator:
     def __init__(self, **tqdm_kwargs):
         if pandarallel_import_error:
             raise ImportError(
-                "pandarallel not installed, please install it to use this class."
+                "pandarallel not installed, please install pandarallel>=1.6 to use this class."
             )
-            
 
         self.tqdm_kwargs = tqdm_kwargs
         return
