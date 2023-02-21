@@ -13,11 +13,11 @@ setup(
     packages=find_packages(),
     long_description=open('README.txt').read(),
     install_requires=[
-                        "numpy>=1.22",
-                        "pandas>=1.4",
-                        "matplotlib>=3.5",
-                        "dcarte>=0.3",
-                        "scikit-learn>=1.0",
-                        "tqdm>=4.64",
+        "numpy>=1.22",
+        "pandas>=1.4",
+        "matplotlib>=3.5",
+        "dcarte>=0.3",
+        "scikit-learn>=1.0",
+        "tqdm>=4.64",
     ]
 )

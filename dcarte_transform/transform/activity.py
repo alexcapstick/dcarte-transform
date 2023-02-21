@@ -12,12 +12,14 @@ from ..utils.progress import tqdm_style, pandarallel_progress
 
 try:
     from pydtmc import MarkovChain
+
     pydtmc_import_error = False
 except ImportError:
     pydtmc_import_error = True
 
 try:
     from pandarallel import pandarallel as pandarallel_
+
     pandarallel_import_error = False
 except ImportError:
     pandarallel_import_error = True
@@ -129,13 +131,16 @@ def compute_entropy_rate_from_sequence(sequence):
 
     try:
         from pydtmc import MarkovChain
+
         pydtmc_import_error = False
     except ImportError:
         pydtmc_import_error = True
-    
+
     if pydtmc_import_error:
-        raise ImportError("pydtmc is required to calculate the entropy rate. "\
-            "Please install it to use this function.")
+        raise ImportError(
+            "pydtmc is required to calculate the entropy rate. "
+            "Please install pydtmc>=6.10 to use this function."
+        )
 
     p_matrix = compute_p_matrix(sequence)
 
@@ -231,7 +236,7 @@ def compute_entropy_rate(
 
     if pandarallel_import_error:
         raise ImportError(
-            "pandarallel is not installed, please install it to use this function."
+            "pandarallel is not installed, please install pandarallel>=1.6 to use this function."
         )
 
     assert len(sensors) >= 2, "need at least two sensors to calculate the entropy"
