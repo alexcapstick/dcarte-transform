@@ -17,6 +17,42 @@ except:
     from dcarte_transform.label._base import _label, _label_number_previous
 
 
+def resample_labels_database(database:pd.DataFrame, 
+                             most_frequent_ids:pd.DataFrame):
+    '''
+        This function will return the expanded dataframe of the neuropsychiatric labels to include the false labels.
+
+        Arguments
+        ---------
+
+        - database:  pd.DataFrame:
+            Database to expande.
+
+        - most_frequent_ids: pd.DataFrame:
+            Dataframe including the ids of the participants suffering most frequently from neuropsychiatric symptoms.
+
+
+        Returns
+        --------
+
+        - resampled_database:  pd.DataFrame` :
+            A dataframe containing the expanded version of the neuropsychiatric labels, with the corresponding patient_id and
+            date.
+
+        '''
+    resampled_database = pd.DataFrame()
+    for patient in most_frequent_ids['patient_id']:
+        current_data = database[database['patient_id'] == patient].reset_index(drop=True)
+        if not current_data.empty:
+            current_data = current_data.drop_duplicates(subset='start_date').set_index('start_date')
+            new_index = pd.date_range(current_data.index.min(), current_data.index.max(), freq='D')
+            current_data = current_data.reindex(new_index).reset_index()
+            current_data['patient_id'] = patient
+            current_data['type'] = database['type'].values[0]
+            resampled_database = pd.concat([resampled_database, current_data])
+    resampled_database = resampled_database.fillna(False)
+    return resampled_database.reset_index(drop=True)
+
 
 def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     '''
@@ -49,19 +85,36 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
 
     '''
 
-    symptoms = ['Agitation']  # , 'Anxiety', 'Irritability', 'Depressed mood']
+    symptoms = ['Depressed mood', 'Agitation', 'Anxiety', 'Irritability', 'Hallucinations', 'Delusions']
 
     minder_df = dcarte.load('Behavioural', 'RAW')
     minder_df = minder_df[minder_df['type'].isin(symptoms)].reset_index(drop=True)
     minder_df['notes'] = minder_df['notes'].str.lower()
     minder_df['label'] = np.nan
-    minder_df['start_date'] = pd.to_datetime(minder_df['start_date'])
-    # minder_df['start_date'] = minder_df['start_date'].dt.floor('D')
+    minder_df['start_date'] = pd.to_datetime(minder_df['start_date']).dt.floor('D')
+    minder_df['type'] = 'Neuropsychiatric'
+    minder_df
+
+    minder_df.loc[minder_df['start_date']>'2022-03-01', 'label'] = 'positive'
+
     minder_df.loc[minder_df['notes'].str.contains('positive', na=False), 'label'] = 'positive'
     minder_df.loc[minder_df['notes'].str.contains('negative', na=False), 'label'] = 'negative'
+
     minder_df = minder_df.drop(columns=['home_id', 'sub_types', 'source', 'notes'])
     minder_df['label'] = minder_df['label'].replace('positive', True)
     minder_df['label'] = minder_df['label'].replace('negative', False)
+
+    minder_df = minder_df.dropna()
+
+    minder_df = minder_df.sort_values('label', ascending=False).drop_duplicates(subset=['patient_id', 'start_date'])
+    minder_df = minder_df.sort_values(['patient_id', 'start_date']).reset_index(drop=True)
+
+    most_frequent_ids = minder_df.groupby('patient_id').size().to_frame('size').reset_index().sort_values(by='size')
+    most_frequent_ids = most_frequent_ids[most_frequent_ids['size']>most_frequent_ids['size'].mean()]
+
+    minder_df = resample_labels_database(minder_df, most_frequent_ids) 
+    minder_df.rename(columns={'index': 'start_date'}, inplace=True)
+
 
     tihm_df = dcarte.load('Flags', 'LEGACY')
     flags_columns_to_keep = ['subjectdf', 'type', 'datetimeRaised', 'valid']
@@ -69,7 +122,8 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     tihm_df = tihm_df.rename(columns={'datetimeRaised': 'start_date', 'subjectdf': 'patient_id', 'valid': 'label'})
 
     tihm_df = tihm_df[tihm_df['type'].isin(symptoms)]
-    tihm_df['type'] = 'Agitation'
+    tihm_df['type'] = 'Neuropsychiatric'
+    tihm_df['start_date'] = pd.to_datetime(tihm_df['start_date']).dt.floor('D')
 
     df_labels = pd.concat([tihm_df, minder_df]).drop(columns='type').drop_duplicates().reset_index(drop=True)
     df_labels = df_labels.rename(columns={'start_date': 'date', 'label': 'outcome'})
