@@ -24,17 +24,13 @@ def resample_labels_database(database:pd.DataFrame,
 
         Arguments
         ---------
-
         - database:  pd.DataFrame:
             Database to expande.
-
         - most_frequent_ids: pd.DataFrame:
             Dataframe including the ids of the participants suffering most frequently from neuropsychiatric symptoms.
 
-
         Returns
         --------
-
         - resampled_database:  pd.DataFrame` :
             A dataframe containing the expanded version of the neuropsychiatric labels, with the corresponding patient_id and
             date.
@@ -54,7 +50,7 @@ def resample_labels_database(database:pd.DataFrame,
     return resampled_database.reset_index(drop=True)
 
 
-def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
+def get_labels(days_either_side:int=0, return_event:bool=False, all_symptoms:bool=False) -> pd.DataFrame:
     '''
     This function will return the Agitation labels.
     If a single day for a paticular ID contains two different
@@ -63,7 +59,6 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
 
     Arguments
     ---------
-
     - days_either_side:  int, optional:
         The number of days either side of a label that will be given the same label.
         If these days overlap, if the label is the same then the first will be kept.
@@ -78,14 +73,16 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
 
     Returns
     --------
-
     - out:  pd.DataFrame` :
         A dataframe containing the Agitation labels, with the corresponding patient_id and
         date.
 
     '''
     # extract the minder labels 
-    symptoms = ['Depressed mood', 'Agitation', 'Anxiety', 'Irritability', 'Hallucinations', 'Delusions']
+    if all_symptoms:
+        symptoms = ['Depressed mood', 'Agitation', 'Anxiety', 'Irritability', 'Hallucinations', 'Delusions']
+    else:
+        symptoms = ['Agitation']
 
     minder_df = dcarte.load('Behavioural', 'RAW')
     minder_df = minder_df[minder_df['type'].isin(symptoms)].reset_index(drop=True)
@@ -115,8 +112,11 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     # minder_df.rename(columns={'index': 'start_date'}, inplace=True)
 
     # add the care questionnaire results
-    questions = ['weekly-checking-PLWDAgitation-boolean',
-             'weekly-checking-PLWDConfusion-boolean']
+    if all_symptoms:
+        questions = ['weekly-checking-PLWDAgitation-boolean',
+                'weekly-checking-PLWDConfusion-boolean']
+    else:
+        questions = ['weekly-checking-PLWDAgitation-boolean']
 
     questionnaire = dcarte.load('Questionnaire', 'CARE')
     questionnaire = questionnaire[questionnaire['question'].isin(questions)].reset_index(drop=True)
@@ -175,9 +175,6 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     return df_labels.reset_index(drop=True).dropna(subset='agitation_label')
 
 
-
-
-
 @dcarte.utils.timer('mapping Agitation labels')
 def label(
     df:pd.DataFrame, 
@@ -192,7 +189,6 @@ def label(
 
     Arguments
     ----------
-    
     - df:  pandas.DataFrame: 
         Unlabelled dataframe, must contain columns :code:`[id_col, datetime_col]`, where :code:`id_col` is the
         ids of participants and :code:`datetime_col` is the time of the sensors.
@@ -215,8 +211,7 @@ def label(
         Defaults to :code:`False`.
 
     Returns
-    ---------
-    
+    ---------    
     - df_labelled: pandas.DataFrame: 
         This is a dataframe containing the original data along with a new column, :code:`'agitation_labels'`,
         which contains the labels. If :code:`return_event=True`, a column titled :code:`'agitation_event'` will be 
@@ -249,4 +244,3 @@ if __name__=='__main__':
     n_positives = np.sum(data_labelled['agitation_label']==True)
     n_negatives = np.sum(data_labelled['agitation_label']==False)
     print(f'Agitation: There are {n_positives} positively and {n_negatives} negatively labelled rows.')
-    
