@@ -414,7 +414,7 @@ def compute_daily_location_freq(
     """
 
     days_of_data = (
-        df.astype({"location_name": object})
+        df
         .assign(date=lambda x: pd.to_datetime(x[datetime_col]).dt.date)[
             [id_col, "date"]
         ]
@@ -424,7 +424,6 @@ def compute_daily_location_freq(
 
     location_feq = (
         df[[id_col, datetime_col, location_col]]
-        .astype({location_col: object, id_col: object})
         .assign(datetime_col=lambda x: pd.to_datetime(x[datetime_col]))
         .query(f"{location_col} == @location")
         .pipe(

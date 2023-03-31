@@ -11,13 +11,20 @@ from dcarte.local import LocalDataset
 
 try:
     from pandarallel import pandarallel as pandarallel_
+
     pandarallel_import_error = False
 except ImportError:
     pandarallel_import_error = True
 
 try:
     from dcarte_transform.utils.progress import tqdm_style, pandarallel_progress
-    from dcarte_transform.transform.utils import datetime_compare_rolling, compute_delta
+    from dcarte_transform.transform.utils import (
+        datetime_compare_rolling,
+        compute_delta,
+        groupby_freq,
+        collapse_levels,
+        lowercase_colnames,
+    )
     from dcarte_transform.transform.activity import (
         compute_daily_location_freq,
         compute_entropy_rate,
@@ -29,7 +36,13 @@ try:
     from dcarte_transform.label.uti import label_number_previous
 except ImportError:
     from ..utils.progress import tqdm_style, pandarallel_progress
-    from ..transform.utils import datetime_compare_rolling, compute_delta
+    from ..transform.utils import (
+        datetime_compare_rolling,
+        compute_delta,
+        groupby_freq,
+        collapse_levels,
+        lowercase_colnames,
+    )
     from ..transform.activity import (
         compute_daily_location_freq,
         compute_entropy_rate,
@@ -61,6 +74,21 @@ feature_nice_names = {
     "respiratory_rate|std": "Standard Deviation of the Nighttime Respiratory Rate",
     "state|count_AWAKE": "Number of Nighttime Awakenings",
     "previous_uti": "Number of Previous UTIs",
+}
+
+
+activity_mapping = {
+    "bathroom1": "Bathroom",
+    "WC1": "Bathroom",
+    "kitchen": "Kitchen",
+    "hallway": "Hallway",
+    "corridor1": "Hallway",
+    "dining room": "Lounge",
+    "living room": "Lounge",
+    "lounge": "Lounge",
+    "bedroom1": "Bedroom",
+    "front door": "Front door",
+    "back door": "Back door",
 }
 
 
@@ -284,7 +312,6 @@ def compute_location_time_stats(
         location_col=location_col,
         datetime_col=datetime_col,
         time_range=time_range,
-        name=f"{name}_freq",
     )
 
     # computing moving average
@@ -352,7 +379,18 @@ def process_sleep(self):
 
 def process_relative_transitions(self):
 
-    df = self.datasets["transitions"]
+    df = (
+        self.datasets["activity"]
+        .replace({"location_name": activity_mapping})
+        .astype({"location_name": object, "patient_id": object})
+        .pipe(
+            dcarte.utils.process_transition,
+            groupby=["patient_id"],
+            datetime="start_date",
+            value="location_name",
+        )
+        .reset_index()
+    )
 
     def relative_mean_delta(array_sample, array_distribution):
         # imports are required for parralisation on windows
@@ -405,7 +443,11 @@ def process_relative_transitions(self):
 
 def process_bathroom_nighttime_stats(self):
 
-    df = self.datasets["motion"]
+    df = (
+        self.datasets["activity"]
+        .replace({"location_name": activity_mapping})
+        .astype({"location_name": object, "patient_id": object})
+    )
     bathroom_freq_nighttime = compute_location_time_stats(
         df,
         location_name="Bathroom",
@@ -421,7 +463,11 @@ def process_bathroom_nighttime_stats(self):
 
 def process_bathroom_daytime_stats(self):
 
-    df = self.datasets["motion"]
+    df = (
+        self.datasets["activity"]
+        .replace({"location_name": activity_mapping})
+        .astype({"location_name": object, "patient_id": object})
+    )
     bathroom_freq_daytime = compute_location_time_stats(
         df,
         location_name="Bathroom",
@@ -437,7 +483,7 @@ def process_bathroom_daytime_stats(self):
 
 def process_entropy_daily(self):
 
-    df = self.datasets["motion"]
+    df = self.datasets["activity"].replace({"location_name": activity_mapping})
     entropy_daily = compute_entropy_data(
         df,
         freq="day",
@@ -493,41 +539,66 @@ def process_fe_data(self):
 
 
 def process_core_raw_data(self):
-    motion = self.datasets["motion"]
-    motion = motion[["patient_id", "start_date", "location_name"]]
+    activity = self.datasets["activity"].replace({"location_name": activity_mapping})
 
-    motion = (
-        motion.assign(start_date=lambda x: pd.to_datetime(x["start_date"]))
+    days_of_data = (
+        activity.query("source == 'raw_activity_pir'")
+        .astype({"location_name": object, "patient_id": object})
+        .assign(date=lambda x: pd.to_datetime(x["start_date"]).dt.date)[
+            ["patient_id", "date"]
+        ]
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+
+    daily_location_freq = (
+        activity[["patient_id", "start_date", "location_name"]]
+        .astype({"location_name": object, "patient_id": object})
+        .assign(start_date=lambda x: pd.to_datetime(x["start_date"]))
+        # getting only the core locations
         .query("location_name in @CORE_LOCATIONS")
-        .groupby(
-            by=[
-                "patient_id",
-                pd.Grouper(key="start_date", freq="1d"),
-                "location_name",
-            ]
+        # counting the location counts for each day and each patient
+        .pipe(
+            groupby_freq,
+            groupby_cols=["patient_id", pd.Grouper(key="start_date", freq="1d")],
+            count_col="location_name",
         )
-        .size()
-        .to_frame(name="freq")
+        # unstacking to produce location name columns
         .unstack()
+        # swapping the levels of the multiindex
+        .swaplevel(i=0, j=1, axis=1)
+        .pipe(collapse_levels)  # collapse multiindex columns
         .reset_index()
-        .sort_values(["patient_id", "start_date"])
-    )
-
-    motion.columns = motion.columns.map("|".join).str.strip("|")
-
-    # making sure that all 0s are NaNs are correct imputing
-    motion = motion.replace({f"freq|{loc}": {0: np.nan} for loc in CORE_LOCATIONS})
-
-    motion = motion.groupby("patient_id", group_keys=False).apply(
-        lambda x: fill_from_first_occurence(
-            x, subset=[f"freq|{loc}" for loc in CORE_LOCATIONS], value=0
+        .pipe(lowercase_colnames)  # lowercase column names
+        # creating date column
+        .assign(start_date=lambda x: pd.to_datetime(x["start_date"]).dt.date)
+        .rename(columns={"start_date": "date"})
+        # merging with all of the days of data, to ensure that all days are present
+        # this is done because there might be days in which no locations in the core locations
+        # were visited, but there were other locations visited
+        .merge(days_of_data, on=["patient_id", "date"], how="outer")
+        .sort_values(["patient_id", "date"])
+        .reset_index(drop=True)
+        # filling the locations with 0 from their first visit
+        .pipe(
+            lambda x: x.replace(
+                {
+                    col: {0: np.nan}
+                    for col in list(x.drop(["patient_id", "date"], axis=1).columns)
+                }
+            )
+        )
+        .groupby("patient_id", group_keys=False)
+        .apply(
+            lambda x: fill_from_first_occurence(
+                x.sort_values("date"),
+                subset=list(x.drop(["patient_id", "date"], axis=1).columns),
+                value=0,
+            )
         )
     )
 
-    motion["date"] = pd.to_datetime(motion["start_date"]).dt.date
-    motion = motion.drop("start_date", axis=1)
-
-    return motion
+    return daily_location_freq
 
 
 def process_core_raw_and_fe_data(self):
@@ -566,10 +637,10 @@ def create_feature_engineering_datasets():
 
     parent_datasets = {
         "sleep_fe": [["sleep", "base"]],
-        "bathroom_relative_transitions_fe": [["transitions", "tihm_and_minder"]],
-        "bathroom_nighttime_fe": [["motion", "tihm_and_minder"]],
-        "bathroom_daytime_fe": [["motion", "tihm_and_minder"]],
-        "entropy_daily_fe": [["motion", "tihm_and_minder"]],
+        "bathroom_relative_transitions_fe": [["activity", "raw"]],
+        "bathroom_nighttime_fe": [["activity", "raw"]],
+        "bathroom_daytime_fe": [["activity", "raw"]],
+        "entropy_daily_fe": [["activity", "raw"]],
         "all_fe": [
             ["sleep_fe", "feature_engineering"],
             ["bathroom_relative_transitions_fe", "feature_engineering"],
@@ -577,7 +648,7 @@ def create_feature_engineering_datasets():
             ["bathroom_daytime_fe", "feature_engineering"],
             ["entropy_daily_fe", "feature_engineering"],
         ],
-        "core_raw": [["motion", "tihm_and_minder"]],
+        "core_raw": [["activity", "raw"]],
         "all_core_raw_fe": [
             ["core_raw", "feature_engineering"],
             ["all_fe", "feature_engineering"],
