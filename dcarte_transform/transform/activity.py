@@ -7,7 +7,13 @@ import numpy as np
 import typing
 import tqdm
 import dcarte
-from .utils import compute_delta
+from .utils import (
+    compute_delta,
+    lowercase_colnames,
+    groupby_freq,
+    between_time,
+    collapse_levels,
+)
 from ..utils.progress import tqdm_style, pandarallel_progress
 
 try:
@@ -344,13 +350,10 @@ def compute_daily_location_freq(
     location_col: str = "location_name",
     datetime_col: str = "start_date",
     time_range: typing.Union[None, typing.List[str]] = None,
-    name: typing.Union[None, str] = None,
 ) -> pd.DataFrame:
     """
     This function allows you to calculate the frequency of visits to
     a given location during a given time range, aggregated daily.
-
-
 
     Example
     ---------
@@ -397,11 +400,6 @@ def compute_daily_location_freq(
         element is the end time.
         Defaults to :code:`None`.
 
-    - name: str` or None:
-        This argument allows you to name the outputted column that contains
-        the frequencies.
-        Defaults to :code:`None`
-
 
     Returns
     ---------
@@ -415,23 +413,99 @@ def compute_daily_location_freq(
 
     """
 
-    data = df.copy()
-    data[datetime_col] = pd.to_datetime(data[datetime_col])
-    data = data[data[location_col] == location][[id_col, datetime_col, location_col]]
-    if time_range is None:
-        data = data.set_index(datetime_col).reset_index()
-    else:
-        data = (
-            data.set_index(datetime_col)
-            .between_time(*time_range, inclusive="left")
-            .reset_index()
-        )
-    data["date"] = data[datetime_col].dt.date
-    data = data.groupby([id_col, "date"])[location_col].count().reset_index()
-    name = name if name is not None else f"{location}_freq"
-    data.columns = [id_col, "date", name]
+    days_of_data = (
+        df.astype({"location_name": object})
+        .assign(date=lambda x: pd.to_datetime(x[datetime_col]).dt.date)[
+            [id_col, "date"]
+        ]
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
 
-    return data
+    location_feq = (
+        df[[id_col, datetime_col, location_col]]
+        .astype({location_col: object, id_col: object})
+        .assign(datetime_col=lambda x: pd.to_datetime(x[datetime_col]))
+        .query(f"{location_col} == @location")
+        .pipe(
+            lambda df: pd.concat(
+                [
+                    df.pipe(between_time, time_range, datetime_col).assign(
+                        time_range=True
+                    ),
+                    df.assign(time_range=False),
+                ],
+                axis=0,
+            )
+        )
+        # counting the location counts for each day and each patient
+        .pipe(
+            groupby_freq,
+            groupby_cols=[
+                id_col,
+                pd.Grouper(
+                    key=datetime_col,
+                    freq="1d",
+                ),
+                "time_range",
+            ],
+            count_col=location_col,
+        )
+        # unstacking to produce location name columns
+        .unstack()
+        # swapping the levels of the multiindex
+        .swaplevel(i=0, j=1, axis=1)
+        .pipe(collapse_levels)  # collapse multiindex columns
+        .reset_index()
+        .pipe(lowercase_colnames)  # lowercase column names
+        # creating date column
+        .assign(**{datetime_col: lambda x: pd.to_datetime(x[datetime_col]).dt.date})
+        .rename(columns={datetime_col: "date"})
+        # making 0 visited locations nan.
+        # this is done because we want to fill the locations
+        # with 0 from their first visit
+        .pipe(
+            lambda x: x.replace(
+                {
+                    col: {0: np.nan}
+                    for col in list(
+                        x.drop([id_col, "date", "time_range"], axis=1).columns
+                    )
+                }
+            )
+        )
+        # filling from 0, including with the sensor
+        # firings out of the time range. This ensures that even
+        # if the sensor fired out of the time range,
+        # we will still count the household as having that sensor
+        .groupby(id_col, group_keys=False)
+        .apply(
+            lambda x: fill_from_first_occurence(
+                x.sort_values(["date"]).sort_values(["time_range"], ascending=False),
+                subset=list(x.drop([id_col, "date", "time_range"], axis=1).columns),
+                value=0,
+            )
+        )
+        .query("time_range != False")
+        .drop("time_range", axis=1)
+        # merging with all of the days of data, to ensure that all days are present
+        # this is done because there might be days in which no locations in the core locations
+        # were visited, but there were other locations visited
+        .merge(days_of_data, on=[id_col, "date"], how="outer")
+        .sort_values([id_col, "date"])
+        .reset_index(drop=True)
+        # filling the locations with 0 from their first visit
+        .groupby(id_col, group_keys=False)
+        .apply(
+            lambda x: fill_from_first_occurence(
+                x.sort_values("date"),
+                subset=list(x.drop([id_col, "date"], axis=1).columns),
+                value=0,
+            )
+        )
+    )
+
+    return location_feq
 
 
 if __name__ == "__main__":
