@@ -24,17 +24,13 @@ def resample_labels_database(database:pd.DataFrame,
 
         Arguments
         ---------
-
         - database:  pd.DataFrame:
             Database to expande.
-
         - most_frequent_ids: pd.DataFrame:
             Dataframe including the ids of the participants suffering most frequently from neuropsychiatric symptoms.
 
-
         Returns
         --------
-
         - resampled_database:  pd.DataFrame` :
             A dataframe containing the expanded version of the neuropsychiatric labels, with the corresponding patient_id and
             date.
@@ -54,7 +50,7 @@ def resample_labels_database(database:pd.DataFrame,
     return resampled_database.reset_index(drop=True)
 
 
-def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
+def get_labels(days_either_side:int=0, return_event:bool=False, all_symptoms:bool=False) -> pd.DataFrame:
     '''
     This function will return the Agitation labels.
     If a single day for a paticular ID contains two different
@@ -63,7 +59,6 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
 
     Arguments
     ---------
-
     - days_either_side:  int, optional:
         The number of days either side of a label that will be given the same label.
         If these days overlap, if the label is the same then the first will be kept.
@@ -78,25 +73,25 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
 
     Returns
     --------
-
     - out:  pd.DataFrame` :
         A dataframe containing the Agitation labels, with the corresponding patient_id and
         date.
 
     '''
-
-    symptoms = ['Depressed mood', 'Agitation', 'Anxiety', 'Irritability', 'Hallucinations', 'Delusions']
+    # extract the minder labels 
+    if all_symptoms:
+        symptoms = ['Depressed mood', 'Agitation', 'Anxiety', 'Irritability', 'Hallucinations', 'Delusions']
+    else:
+        symptoms = ['Agitation']
 
     minder_df = dcarte.load('Behavioural', 'RAW')
     minder_df = minder_df[minder_df['type'].isin(symptoms)].reset_index(drop=True)
     minder_df['notes'] = minder_df['notes'].str.lower()
     minder_df['label'] = np.nan
     minder_df['start_date'] = pd.to_datetime(minder_df['start_date']).dt.floor('D')
-    minder_df['type'] = 'Neuropsychiatric'
-    minder_df
+    minder_df['type'] = 'Neuropsychiatric' 
 
     minder_df.loc[minder_df['start_date']>'2022-03-01', 'label'] = 'positive'
-
     minder_df.loc[minder_df['notes'].str.contains('positive', na=False), 'label'] = 'positive'
     minder_df.loc[minder_df['notes'].str.contains('negative', na=False), 'label'] = 'negative'
 
@@ -109,13 +104,32 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     minder_df = minder_df.sort_values('label', ascending=False).drop_duplicates(subset=['patient_id', 'start_date'])
     minder_df = minder_df.sort_values(['patient_id', 'start_date']).reset_index(drop=True)
 
-    most_frequent_ids = minder_df.groupby('patient_id').size().to_frame('size').reset_index().sort_values(by='size')
-    most_frequent_ids = most_frequent_ids[most_frequent_ids['size']>most_frequent_ids['size'].mean()]
+    # we don't need this anymore
+    # most_frequent_ids = minder_df.groupby('patient_id').size().to_frame('size').reset_index().sort_values(by='size')
+    # most_frequent_ids = most_frequent_ids[most_frequent_ids['size']>most_frequent_ids['size'].mean()]
 
-    minder_df = resample_labels_database(minder_df, most_frequent_ids) 
-    minder_df.rename(columns={'index': 'start_date'}, inplace=True)
+    # minder_df = resample_labels_database(minder_df, most_frequent_ids) 
+    # minder_df.rename(columns={'index': 'start_date'}, inplace=True)
+
+    # add the care questionnaire results
+    if all_symptoms:
+        questions = ['weekly-checking-PLWDAgitation-boolean',
+                'weekly-checking-PLWDConfusion-boolean']
+    else:
+        questions = ['weekly-checking-PLWDAgitation-boolean']
+
+    questionnaire = dcarte.load('Questionnaire', 'CARE')
+    questionnaire = questionnaire[questionnaire['question'].isin(questions)].reset_index(drop=True)
+    questionnaire['question'].replace({'weekly-checking-PLWDAgitation-boolean': 'Neuropsychiatric', 'weekly-checking-PLWDConfusion-boolean': 'Neuropsychiatric'}, inplace=True)
+    questionnaire['authored'] = questionnaire['authored'].dt.floor('D')
+    questionnaire['answer'] = questionnaire['answer'].astype('float')
+    questionnaire['answer'] = questionnaire['answer'].replace({0.0:False, 1.0:True})
+    questionnaire.rename(columns={'question': 'type', 'answer': 'label', 'authored': 'start_date'}, inplace=True)
+    questionnaire.drop(columns=['response_id', 'questionnaire', 'source'], inplace=True)
+    minder_df = pd.concat([minder_df, questionnaire])
 
 
+    # include also the TIHM labels
     tihm_df = dcarte.load('Flags', 'LEGACY')
     flags_columns_to_keep = ['subjectdf', 'type', 'datetimeRaised', 'valid']
     tihm_df = tihm_df[flags_columns_to_keep]
@@ -126,7 +140,7 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     tihm_df['start_date'] = pd.to_datetime(tihm_df['start_date']).dt.floor('D')
 
     df_labels = pd.concat([tihm_df, minder_df]).drop(columns='type').drop_duplicates().reset_index(drop=True)
-    df_labels = df_labels.rename(columns={'start_date': 'date', 'label': 'outcome'})
+    df_labels = df_labels.rename(columns={'start_date': 'date', 'label': 'agitation_label'})
     df_labels['date'] = pd.to_datetime(df_labels['date']).dt.date
 
     if return_event:
@@ -145,8 +159,8 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
             x['date'] = new_dates
             return x
 
-        groupby_names = (['patient_id', 'date', 'event', 'outcome'] if return_event
-                         else ['patient_id', 'date', 'outcome'])
+        groupby_names = (['patient_id', 'date', 'event', 'agitation_label'] if return_event
+                         else ['patient_id', 'date', 'agitation_label'])
         df_labels = df_labels.groupby(groupby_names).apply(dates_either_side_group_by).reset_index(drop=True)
     else:
         df_labels.reset_index(drop=True)
@@ -154,14 +168,11 @@ def get_labels(days_either_side:int=0, return_event:bool=False) -> pd.DataFrame:
     # removing the rows with contradictory labels
     df_labels = (df_labels
                     # keeping one of the rows where the labels are the same
-                    .drop_duplicates(subset=['patient_id', 'date', 'outcome'], keep='first')
+                    .drop_duplicates(subset=['patient_id', 'date', 'agitation_label'], keep='first')
                     # removing rows where the labels are the different
                     .drop_duplicates(subset=['patient_id', 'date'], keep=False))
 
-    return df_labels.reset_index(drop=True).dropna(subset='outcome')
-
-
-
+    return df_labels.reset_index(drop=True).dropna(subset='agitation_label')
 
 
 @dcarte.utils.timer('mapping Agitation labels')
@@ -178,7 +189,6 @@ def label(
 
     Arguments
     ----------
-    
     - df:  pandas.DataFrame: 
         Unlabelled dataframe, must contain columns :code:`[id_col, datetime_col]`, where :code:`id_col` is the
         ids of participants and :code:`datetime_col` is the time of the sensors.
@@ -201,8 +211,7 @@ def label(
         Defaults to :code:`False`.
 
     Returns
-    ---------
-    
+    ---------    
     - df_labelled: pandas.DataFrame: 
         This is a dataframe containing the original data along with a new column, :code:`'agitation_labels'`,
         which contains the labels. If :code:`return_event=True`, a column titled :code:`'agitation_event'` will be 
@@ -221,73 +230,17 @@ def label(
         id_col=id_col,
         datetime_col=datetime_col,
         )
-    return df_out.rename(columns={'outcome': 'agitation_label', 'event': 'agitation_event'})
-
-
-
-
-def label_number_previous(
-    df:pd.DataFrame, 
-    id_col:str='patient_id', 
-    datetime_col:str='start_date',
-    day_delay:int=1,
-    ):
-    '''
-    This function allows you to label the number of agitation positives to date
-    for the corresponding ID and date.
-    
-    Arguments
-    ---------
-    - df:  pandas.DataFrame: 
-        The dataframe to append the number of previous agitation positives to.
-    
-    - id_col:  str, optional:
-        The column name that contains the ID information.
-        Defaults to :code:`'patient_id'`.
-
-    - datetime_col:  str, optional:
-        The column name that contains the date time information.
-        Defaults to :code:`'start_date'`.
-
-    - day_delay:  int, optional:
-        The number of days after an agitation is detected when the data reflects
-        that the ID has had another previous agitation. This is used to ensure
-        that the predictive model does not simply learn that to look for 
-        when this feature increases.
-        Defaults to :code:`1`.
-    
-    Returns
-    ---------
-    
-    - df_out: pandas.DataFrame: 
-        This is a dataframe containing the original data along with a new column, :code:`'agitation_previous'`,
-        which contains the number of previous agitations to date for that ID.
-    
-    
-    '''
-
-    df_out = _label_number_previous(
-        df=df,
-        label_function=get_labels,
-        id_col=id_col,
-        datetime_col=datetime_col,
-        day_delay=day_delay,
-    )
-    return df_out.rename(columns={'previous_outcome': 'previous_agitation'})
-
-
-
-
-
-
-
-
+    return df_out.rename(columns={'event': 'agitation_event'})
 
 
 if __name__=='__main__':
+    # extract just the labels
+    labels = get_labels() 
+    print('Positive Lables : {} - Negative Labels : {}'.format( np.sum(labels['agitation_label']==True), np.sum(labels['agitation_label']==False)))
+    
+    # label a specific dataset
     data = dcarte.load('activity', 'raw')
     data_labelled = label(data, days_either_side=2, return_event=True)
     n_positives = np.sum(data_labelled['agitation_label']==True)
     n_negatives = np.sum(data_labelled['agitation_label']==False)
     print(f'Agitation: There are {n_positives} positively and {n_negatives} negatively labelled rows.')
-    data_previous_uti = label_number_previous(data)
