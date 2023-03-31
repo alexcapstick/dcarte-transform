@@ -112,44 +112,39 @@ def compute_sleep(
     datetime_col: str,
 ):
 
-    sleep = sleep.copy()
-    sleep = sleep.assign(start_date=lambda x: pd.to_datetime(x["start_date"]))
+    sleep = sleep.assign(**{datetime_col: (lambda x: pd.to_datetime(x[datetime_col]))})
+
+    sleep_states = sleep["state"].unique()
 
     # sleep states
 
-    sleep_states = sleep["state"].unique()
+    def ensure_single_sleep_state(df):
+        df_imputed = df[
+            pd.isna(df).sum(axis=1).between(0, df.shape[1], inclusive="neither")
+        ].fillna(0)
+        df.loc[df_imputed.index, df_imputed.columns] = df_imputed
+        return df.dropna(how="all", axis=0)
+
     sleep_states_df = (
         sleep[[id_col, datetime_col, "state"]]
-        .groupby(by=[id_col, pd.Grouper(key=datetime_col, freq="1d"), "state"])
-        .size()
-        .to_frame(name="freq")
+        .pipe(
+            groupby_freq,
+            groupby_cols=[id_col, pd.Grouper(key=datetime_col, freq="1d")],
+            count_col="state",
+        )
         .unstack()
+        .swaplevel(i=0, j=1, axis=1)
+        .pipe(collapse_levels)
         .reset_index()
-        .sort_values(["patient_id", "start_date"])
+        .pipe(lowercase_colnames)
+        .sort_values([id_col, datetime_col])
+        .replace({f"{str(state).lower()}_freq": {0: np.nan} for state in sleep_states})
+        .set_index([id_col, datetime_col])
+        .pipe(ensure_single_sleep_state)
+        .reset_index()
+        .assign(**{datetime_col: (lambda x: pd.to_datetime(x[datetime_col]))})
+        .rename(columns={datetime_col: "date"})
     )
-
-    sleep_states_df.columns = sleep_states_df.columns.map("|".join).str.strip("|")
-    # making sure that all 0s are NaNs are correct imputing
-    sleep_states_df = sleep_states_df.replace(
-        {f"freq|{state}": {0: np.nan} for state in sleep_states}
-    )
-    # ensuring that if there is at least one sleep state for the day, then nan is 0
-    sleep_states_only_df = sleep_states_df[[f"freq|{state}" for state in sleep_states]]
-    sleep_states_only_imputed = sleep_states_only_df[
-        pd.isna(sleep_states_only_df)
-        .sum(axis=1)
-        .between(0, len(sleep_states), inclusive="neither")
-    ].fillna(0)
-    # removing the sleep days in which there are no recorded states
-    sleep_states_df.loc[
-        sleep_states_only_imputed.index, sleep_states_only_imputed.columns
-    ] = sleep_states_only_imputed
-    sleep_states_df = sleep_states_df[
-        (~(pd.isna(sleep_states_only_df).sum(axis=1) == len(sleep_states)).values)
-    ]
-
-    sleep_states_df["date"] = pd.to_datetime(sleep_states_df["start_date"]).dt.date
-    sleep_states_df = sleep_states_df.drop("start_date", axis=1)
 
     # sleep physio
 
@@ -162,17 +157,15 @@ def compute_sleep(
                 "respiratory_rate": ["mean", "std"],
             }
         )
+        .dropna(how="all", axis=0)
+        .pipe(collapse_levels)
+        .reset_index()
+        .pipe(lowercase_colnames)
+        .assign(**{datetime_col: (lambda x: pd.to_datetime(x[datetime_col]))})
+        .rename(columns={datetime_col: "date"})
     )
-    # removing those days in which there is no data
-    sleep_physio_df = sleep_physio_df[~pd.isna(sleep_physio_df).all(axis=1).values]
-    sleep_physio_df = sleep_physio_df.reset_index()
-    sleep_physio_df.columns = sleep_physio_df.columns.map("|".join).str.strip("|")
-    sleep_physio_df["date"] = pd.to_datetime(sleep_physio_df["start_date"]).dt.date
-    sleep_physio_df = sleep_physio_df.drop("start_date", axis=1)
 
-    return pd.merge(
-        sleep_states_df, sleep_physio_df, on=["patient_id", "date"], how="outer"
-    )
+    return pd.merge(sleep_states_df, sleep_physio_df, on=[id_col, "date"], how="outer")
 
 
 @dcarte.utils.timer("processing relative_transition data")
