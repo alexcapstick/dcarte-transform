@@ -342,9 +342,11 @@ def compute_location_time_stats(
         .groupby(id_col, group_keys=False)
         .apply(
             lambda x: x.assign(
-                delta=compute_delta(
-                    x[f"{name}_freq_ma"].values, pad=True, true_divide=np.nan
-                )
+                **{
+                    f"{name}_freq_ma_delta": lambda x: compute_delta(
+                        x[f"{name}_freq_ma"].values, pad=True, true_divide=np.nan
+                    )
+                }
             )
         )
         .dropna(subset=[f"{name}_freq"])
@@ -396,7 +398,9 @@ def process_sleep(self):
         datetime_col="start_date",
     )
 
-    sleep_stats = sleep_stats.assign(date=lambda df: pd.to_datetime(df["date"]))
+    sleep_stats = sleep_stats.assign(
+        date=lambda df: pd.to_datetime(df["date"])
+    ).reset_index(drop=True)
 
     return sleep_stats
 
@@ -464,7 +468,7 @@ def process_relative_transitions(self):
 
     bathroom_relative_transitions = bathroom_relative_transitions.assign(
         date=lambda df: pd.to_datetime(df["date"])
-    )
+    ).reset_index(drop=True)
 
     return bathroom_relative_transitions
 
@@ -489,7 +493,7 @@ def process_bathroom_nighttime_stats(self):
 
     bathroom_nighttime_freq = bathroom_nighttime_freq.assign(
         date=lambda df: pd.to_datetime(df["date"])
-    )
+    ).reset_index(drop=True)
 
     return bathroom_nighttime_freq
 
@@ -514,7 +518,7 @@ def process_bathroom_daytime_stats(self):
 
     bathroom_daytime_freq = bathroom_daytime_freq.assign(
         date=lambda df: pd.to_datetime(df["date"])
-    )
+    ).reset_index(drop=True)
 
     return bathroom_daytime_freq
 
@@ -535,7 +539,9 @@ def process_entropy_daily(self):
         location_col="location_name",
     )
 
-    entropy_daily = entropy_daily.assign(date=lambda df: pd.to_datetime(df["date"]))
+    entropy_daily = entropy_daily.assign(
+        date=lambda df: pd.to_datetime(df["date"])
+    ).reset_index(drop=True)
 
     return entropy_daily
 
@@ -580,7 +586,9 @@ def process_fe_data(self):
         day_delay=PREVIOUS_UTI_DELAY,
     )
 
-    fe_data = fe_data.assign(date=lambda df: pd.to_datetime(df["date"]))
+    fe_data = fe_data.assign(date=lambda df: pd.to_datetime(df["date"])).reset_index(
+        drop=True
+    )
 
     return fe_data
 
@@ -644,7 +652,10 @@ def process_core_raw_data(self):
             )
         )
         .assign(date=lambda df: pd.to_datetime(df["date"]))
+        .reset_index(drop=True)
     )
+
+    print(daily_location_freq)
 
     return daily_location_freq
 
@@ -667,6 +678,10 @@ def process_core_raw_and_fe_data(self):
         datetime_col="date",
         day_delay=PREVIOUS_UTI_DELAY,
     )
+
+    core_raw_fe_data = core_raw_fe_data.assign(
+        date=lambda df: pd.to_datetime(df["date"])
+    ).reset_index(drop=True)
 
     return core_raw_fe_data
 
