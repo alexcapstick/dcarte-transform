@@ -7,6 +7,7 @@ import pandas as pd
 
 from .agitation import label as _label_agitation
 from .agitation import get_labels as _get_labels_agitation
+from .agitation import label_number_previous as _label_number_previous_agitation
 
 from .uti import label as _label_uti
 from .uti import get_labels as _get_labels_uti
@@ -279,13 +280,13 @@ class Labeller:
 
 
         """
-        raise NotImplementedError("This function is not yet implemented")
-        # return _label_number_previous_agitation(
-        #    df=df,
-        #    id_col=id_col,
-        #    datetime_col=datetime_col,
-        #    day_delay=day_delay,
-        #    )
+
+        return _label_number_previous_agitation(
+            df=df,
+            id_col=id_col,
+            datetime_col=datetime_col,
+            day_delay=day_delay,
+        )
 
     def previous_uti_label_df(
         self,
