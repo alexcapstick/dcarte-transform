@@ -34,6 +34,7 @@ try:
         create_tihm_and_minder_datasets,
     )
     from dcarte_transform.label.uti import label_number_previous
+
 except ImportError:
     from ..utils.progress import tqdm_style, pandarallel_progress
     from ..transform.utils import (
@@ -292,37 +293,64 @@ def compute_location_time_stats(
     rolling_window: int = 3,
     name: typing.Union[str, None] = None,
 ):
-    df = df.copy()
 
     if name is None:
         name = f"{location_name}".lower()
 
-    # computing the location frequency for the given location
-    df = compute_daily_location_freq(
-        df,
-        location=location_name,
-        id_col=id_col,
-        location_col=location_col,
-        datetime_col=datetime_col,
-        time_range=time_range,
+    df_time_stats = (
+        # location frequency
+        compute_daily_location_freq(
+            df,
+            location=location_name,
+            id_col=id_col,
+            location_col=location_col,
+            datetime_col=datetime_col,
+            time_range=time_range,
+        )
+        # lowercase column names
+        .pipe(lowercase_colnames)
+        # rename column names
+        .rename(columns={f"{str(location_name).lower()}_freq": f"{name}_freq"})
+        # reindex to fill in missing dates with NA
+        .pipe(
+            lambda x: (
+                x.set_index([id_col, "date"]).reindex(
+                    pd.MultiIndex.from_product(
+                        [
+                            x[id_col].unique(),
+                            pd.date_range(x["date"].min(), x["date"].max(), freq="1D"),
+                        ],
+                        names=[id_col, "date"],
+                    )
+                )
+            )
+        )
+        # calculate the moving average of the location frequency
+        # taking into account the missing days
+        .assign(
+            **{
+                f"{name}_freq_ma": lambda x: (
+                    x.reset_index()
+                    .groupby(id_col)
+                    .rolling(rolling_window, on="date", min_periods=1)[f"{name}_freq"]
+                    .mean()
+                )
+            }
+        )
+        # calculating the change in the moving average
+        .reset_index()
+        .groupby(id_col, group_keys=False)
+        .apply(
+            lambda x: x.assign(
+                delta=compute_delta(
+                    x[f"{name}_freq_ma"].values, pad=True, true_divide=np.nan
+                )
+            )
+        )
+        .dropna(subset=[f"{name}_freq"])
     )
 
-    # computing moving average
-    df[f"{name}_freq_ma"] = df[[f"{name}_freq"]].rolling(rolling_window).mean()
-
-    # computing the delta in the moving average
-    df[f"{name}_freq_ma_delta"] = compute_delta(df[f"{name}_freq_ma"].values, pad=True)
-
-    # formatting
-    dtypes = {
-        id_col: "category",
-        "date": "object",
-        f"{name}_freq": "int",
-        f"{name}_freq_ma": "float",
-        f"{name}_freq_ma_delta": "float",
-    }
-
-    return df.astype(dtypes)
+    return df_time_stats
 
 
 @dcarte.utils.timer("processing entropy")
@@ -367,6 +395,9 @@ def process_sleep(self):
         id_col="patient_id",
         datetime_col="start_date",
     )
+
+    sleep_stats = sleep_stats.assign(date=lambda df: pd.to_datetime(df["date"]))
+
     return sleep_stats
 
 
@@ -431,6 +462,10 @@ def process_relative_transitions(self):
         )
     )
 
+    bathroom_relative_transitions = bathroom_relative_transitions.assign(
+        date=lambda df: pd.to_datetime(df["date"])
+    )
+
     return bathroom_relative_transitions
 
 
@@ -441,7 +476,7 @@ def process_bathroom_nighttime_stats(self):
         .replace({"location_name": activity_mapping})
         .astype({"location_name": object, "patient_id": object})
     )
-    bathroom_freq_nighttime = compute_location_time_stats(
+    bathroom_nighttime_freq = compute_location_time_stats(
         df,
         location_name="Bathroom",
         id_col="patient_id",
@@ -451,7 +486,12 @@ def process_bathroom_nighttime_stats(self):
         rolling_window=3,
         name="bathroom_nighttime",
     )
-    return bathroom_freq_nighttime
+
+    bathroom_nighttime_freq = bathroom_nighttime_freq.assign(
+        date=lambda df: pd.to_datetime(df["date"])
+    )
+
+    return bathroom_nighttime_freq
 
 
 def process_bathroom_daytime_stats(self):
@@ -461,7 +501,7 @@ def process_bathroom_daytime_stats(self):
         .replace({"location_name": activity_mapping})
         .astype({"location_name": object, "patient_id": object})
     )
-    bathroom_freq_daytime = compute_location_time_stats(
+    bathroom_daytime_freq = compute_location_time_stats(
         df,
         location_name="Bathroom",
         id_col="patient_id",
@@ -471,12 +511,22 @@ def process_bathroom_daytime_stats(self):
         rolling_window=3,
         name="bathroom_daytime",
     )
-    return bathroom_freq_daytime
+
+    bathroom_daytime_freq = bathroom_daytime_freq.assign(
+        date=lambda df: pd.to_datetime(df["date"])
+    )
+
+    return bathroom_daytime_freq
 
 
 def process_entropy_daily(self):
 
-    df = self.datasets["activity"].replace({"location_name": activity_mapping})
+    df = (
+        self.datasets["activity"]
+        .replace({"location_name": activity_mapping})
+        .astype({"location_name": object, "patient_id": object})
+    )
+
     entropy_daily = compute_entropy_data(
         df,
         freq="day",
@@ -484,6 +534,8 @@ def process_entropy_daily(self):
         datetime_col="start_date",
         location_col="location_name",
     )
+
+    entropy_daily = entropy_daily.assign(date=lambda df: pd.to_datetime(df["date"]))
 
     return entropy_daily
 
@@ -527,6 +579,8 @@ def process_fe_data(self):
         datetime_col="date",
         day_delay=PREVIOUS_UTI_DELAY,
     )
+
+    fe_data = fe_data.assign(date=lambda df: pd.to_datetime(df["date"]))
 
     return fe_data
 
@@ -589,6 +643,7 @@ def process_core_raw_data(self):
                 value=0,
             )
         )
+        .assign(date=lambda df: pd.to_datetime(df["date"]))
     )
 
     return daily_location_freq
@@ -625,8 +680,8 @@ def create_feature_engineering_datasets():
     # since = '2022-02-10'
     # until = '2022-02-20'
 
-    if not "TIHM_AND_MINDER" in dcarte.domains().columns:
-        create_tihm_and_minder_datasets()
+    # if not "TIHM_AND_MINDER" in dcarte.domains().columns:
+    #    create_tihm_and_minder_datasets()
 
     parent_datasets = {
         "sleep_fe": [["sleep", "base"]],

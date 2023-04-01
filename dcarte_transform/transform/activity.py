@@ -456,7 +456,6 @@ def compute_daily_location_freq(
         .swaplevel(i=0, j=1, axis=1)
         .pipe(collapse_levels)  # collapse multiindex columns
         .reset_index()
-        .pipe(lowercase_colnames)  # lowercase column names
         # creating date column
         .assign(**{datetime_col: lambda x: pd.to_datetime(x[datetime_col]).dt.date})
         .rename(columns={datetime_col: "date"})

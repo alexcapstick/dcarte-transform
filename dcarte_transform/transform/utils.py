@@ -99,10 +99,7 @@ def relative_func_delta(array_sample, array_distribution, func):
     return (funced_sample - funced_distribution) / funced_distribution
 
 
-def compute_delta(
-    array: np.array,
-    pad: bool = False,
-):
+def compute_delta(array: np.array, pad: bool = False, true_divide=np.nan):
     """
     This function allows the user to calculate the proportional change
     between each element in :code:`x` and its previous element. This is done
@@ -124,6 +121,10 @@ def compute_delta(
         of the array, so that the output is of the same shape as
         :code:`array`.
 
+    - true_divide: optional:
+        Whether the division by 0 should be
+        replaces with nan values.
+
 
     Returns
     ---------
@@ -134,7 +135,12 @@ def compute_delta(
 
     """
 
-    delta = (array[1:] - array[:-1]) / array[:-1]
+    array = np.copy(array)
+    array[array == 0] = np.nan
+
+    delta = (array[1:] - array[:-1]) / np.where(
+        array[:-1] != 0, array[:-1], true_divide
+    )
 
     # fill in the cut elements with nan
     if pad:
