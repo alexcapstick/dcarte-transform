@@ -392,7 +392,7 @@ def datetime_compare_rolling(
         The functions that will be applied to the values.
         This should allow for two arguments to be passed.
         It will be called in the following way:
-        :code:`func(array_distribution, array_sample)`.
+        :code:`func(array_sample, array_distribution)`.
 
     - s:  str, optional:
         The step size when rolling over the dataframe.
