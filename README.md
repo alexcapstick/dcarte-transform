@@ -4,3 +4,10 @@ A package that can be used alongside DCARTE that adds extra functionality for en
 This package is in development.
 
 Documentation is available here: [https://dcarte-transform.readthedocs.io/en/latest/](https://dcarte-transform.readthedocs.io/en/latest/)
+
+
+
+To install:
+```
+pip install git+https://github.com/alexcapstick/dcarte-transform@main#egg=dcarte_transform
+```
